@@ -13,8 +13,9 @@ import {
   BarChart3,
   Download,
   Settings,
-  Brain,
 } from 'lucide-react';
+import { BrandLogo } from './branding/BrandLogo';
+import { BrandName } from './branding/BrandName';
 
 export type NavTab =
   | 'dashboard'
@@ -97,41 +98,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         alignItems: 'center',
         gap: '0.75rem',
       }}>
-        <div style={{
-          width: '34px',
-          height: '34px',
-          borderRadius: '8px',
-          background: 'linear-gradient(135deg, var(--accent) 0%, var(--purple-accent) 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(91, 140, 255, 0.3)',
-        }}>
-          <Brain size={20} color="#ffffff" />
-        </div>
-
+        <BrandLogo size={34} />
         <div>
-          <h2 style={{
-            fontSize: '15px',
-            fontWeight: 700,
-            color: 'var(--text-primary)',
-            letterSpacing: '-0.2px',
-            lineHeight: 1.2,
-          }}>
-            CognitiveAI
-          </h2>
-          <span style={{
-            fontSize: '10px',
-            fontWeight: 600,
-            color: 'var(--accent)',
-            backgroundColor: 'var(--accent-glow)',
-            padding: '1px 6px',
-            borderRadius: '4px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
-            PRO ENTERPRISE
-          </span>
+          <BrandName fontSize="15px" showBadge />
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
+            AI Learning Workspace
+          </div>
         </div>
       </div>
 

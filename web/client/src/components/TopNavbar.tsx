@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, Plus, Bell, Command, User, Sparkles } from 'lucide-react';
 import { NavTab } from './Sidebar';
 import { UserProfile } from '../auth/AuthContext';
+import { BRANDING } from '../config/branding';
 
 interface TopNavbarProps {
   activeTab: NavTab;
@@ -57,7 +58,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
     }}>
       {/* Breadcrumb Path */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>CognitiveAI</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{BRANDING.APP_NAME}</span>
         <span style={{ color: 'var(--border-color)', fontSize: '13px' }}>/</span>
         <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600 }}>
           {getTabLabel(activeTab)}

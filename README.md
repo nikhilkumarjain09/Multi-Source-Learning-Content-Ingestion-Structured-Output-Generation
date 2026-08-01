@@ -1,12 +1,16 @@
-# Multi-Source Learning Content Ingestion & Structured Output Generation
+# SynthLearn — AI-Powered Learning Intelligence Platform
 
-A robust, production-grade system designed to ingest educational content (PDFs, plain-text transcripts, VTT subtitle tracks, video/audio transcripts), normalize input text, extract key learning concepts and directed relationships via LLM provider abstraction, and generate structured outputs (flashcards, summaries, topological learning paths, and interactive SVG concept graphs) backed by MongoDB (Mongoose) storage and vector embedding retrieval.
+<p align="center">
+  <img src="assets/synthlearn.png" alt="SynthLearn Logo" width="120" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(37,99,235,0.25);" />
+</p>
+
+**SynthLearn** is an AI-powered platform for ingesting educational content from multiple sources (PDFs, plain-text transcripts, VTT subtitle tracks, and video/audio transcripts), normalizing input text, extracting key learning concepts and directed relationships via LLM provider abstraction, and generating structured learning experiences including summaries, flashcards, concept graphs, and topological learning paths backed by MongoDB storage, JWT authentication, and vector embedding retrieval.
 
 ---
 
 ## 1. Architecture Overview
 
-The system follows a strict, unidirectional layer architecture with decoupled responsibilities and zero circular dependencies:
+SynthLearn follows a strict, unidirectional layer architecture with decoupled responsibilities and zero circular dependencies:
 
 ```mermaid
 graph TD
@@ -42,8 +46,8 @@ graph TD
 
     subgraph Presentation ["7. Presentation Layer"]
         L --> M[Commander CLI Entrypoint]
-        L --> N[Express Server & REST API]
-        N --> O[React Dark Theme Visualizer & Graph]
+        L --> N[Express Server & JWT Auth API]
+        N --> O[React Light Theme Workspace & Concept Graph]
     end
 ```
 
@@ -53,13 +57,14 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
 
 ## 2. Project Highlights
 
-- **Extensible Plugin-Based Parser Registry**: Supports multiple file types (PDF, Plain Text, Markdown, VTT Subtitles, Audio/Video sidecar transcripts). Adding new format support requires only implementing the `Parser` interface and registering it—zero changes to orchestrator or downstream layers.
+- **SynthLearn Branding & Enterprise SaaS UI**: Modern Light Theme design system inspired by Linear, Notion, and Vercel Dashboard with Command Palette (`Cmd/Ctrl + K`), full sidebar navigation, document workspace, study decks, multi-format summaries, and analytics.
+- **Production-Ready JWT Authentication**: Custom email/password authentication with bcrypt hashing, access tokens, persistent refresh token rotation, Nodemailer SMTP verification/reset emails, and protected routes.
+- **Extensible Plugin-Based Parser Registry**: Supports multiple file types (PDF, Plain Text, Markdown, VTT Subtitles, Audio/Video sidecar transcripts).
 - **Provider-Agnostic LLM Abstraction**: Swappable between Groq API (`llama-3.3-70b-versatile`), NVIDIA NIM (`meta/llama-3.3-70b-instruct`), and Anthropic Claude via `.env` configuration.
-- **Robust Zod Schema Validation & Repair Retry**: Validates raw LLM JSON responses against strict schemas. Automatically triggers a targeted repair retry prompt upon malformed JSON before raising typed errors—preventing silent drops.
+- **Robust Zod Schema Validation & Repair Retry**: Validates raw LLM JSON responses against strict schemas. Automatically triggers a targeted repair retry prompt upon malformed JSON.
 - **Cross-Chunk & Cross-Document Deduplication**: Performs second-pass multi-chunk LLM reconciliation for long documents and cross-document concept deduplication via lowercased `canonical_name` matching.
-- **Semantic Vector Search Fallback**: Generates 128-dimensional n-gram TF-IDF embeddings saved in `concept_embeddings`, enabling cosine-similarity nearest-neighbor retrieval when exact string match returns no results.
+- **Semantic Vector Search Fallback**: Generates 128-dimensional n-gram TF-IDF embeddings saved in `concept_embeddings`, enabling cosine-similarity nearest-neighbor retrieval.
 - **Topological Learning Path Generation**: Computes optimal step-by-step learning sequences from prerequisite concept relationship edges using Kahn's topological sort algorithm.
-- **Interactive SVG Knowledge Graph**: Web UI features an interactive SVG canvas with smooth pan/zoom, node click-to-expand detail panel, and color-coded relationship edge legends.
 
 ---
 
@@ -67,8 +72,8 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
 
 - **Runtime & Language:** Node.js + TypeScript (strict mode)
 - **CLI Framework:** Commander
-- **Web Backend:** Express.js
-- **Web Frontend:** React + TypeScript (Dark Theme)
+- **Web Backend:** Express.js + JWT Authentication + Nodemailer
+- **Web Frontend:** React + TypeScript (SynthLearn Light Theme)
 - **Database:** MongoDB (via `mongoose` with schema validation & indexes)
 - **Validation:** Zod
 - **PDF Parsing:** `pdf-parse`
@@ -98,21 +103,18 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
    ```bash
    cp .env.example .env
    ```
-   Open `.env` and set your preferred LLM provider, API key, and MongoDB connection URI:
+   Open `.env` and set your preferred LLM provider, JWT secrets, and MongoDB connection URI:
    ```env
    LLM_PROVIDER=groq
    GROQ_API_KEY=your_actual_groq_api_key_here
    GROQ_MODEL=llama-3.3-70b-versatile
 
    MONGODB_URI=mongodb://localhost:27017/learning_ingestion
-
-   # Alternative Provider: NVIDIA NIM
-   # LLM_PROVIDER=nvidia
-   # NVIDIA_API_KEY=your_actual_nvidia_api_key_here
-   # NVIDIA_MODEL=meta/llama-3.3-70b-instruct
+   JWT_SECRET=synthlearn_super_secret_access_key_2026
+   JWT_REFRESH_SECRET=synthlearn_super_secret_refresh_key_2026
    ```
 
-3. **Verify MongoDB Connection:**
+3. **Verify Database Connection:**
    ```bash
    npm run db:init
    ```
@@ -129,7 +131,7 @@ npm run cli -- --help
 ```
 
 ### 1. Ingest Learning Files (`ingest <filePath>`)
-Ingests a document, normalizes text, extracts concepts via LLM, generates flashcards/summaries/embeddings, and persists records to SQLite:
+Ingests a document, normalizes text, extracts concepts via LLM, generates flashcards/summaries/embeddings, and persists records to MongoDB:
 ```bash
 # Ingest sample text transcript
 npm run cli -- ingest seed-data/transcripts/machine_learning_intro.txt
@@ -138,7 +140,7 @@ npm run cli -- ingest seed-data/transcripts/machine_learning_intro.txt
 npm run cli -- ingest seed-data/pdfs/neural_networks.pdf
 
 # Ingest sample VTT video transcript file
-npm run cli -- ingest seed-data/transcripts/lecture_video.vtt
+npm run cli -- ingest seed-data/videos/computer_vision_lecture.mp4
 ```
 
 ### 2. List Stored Topics (`list-topics`)
@@ -157,34 +159,19 @@ npm run cli -- export "Machine Learning" --format json
 npm run cli -- export "Machine Learning" --format csv
 ```
 
-### 4. Generate Topological Learning Path (`learning-path <topic>`)
-Generates an ordered step-by-step learning sequence respecting prerequisite dependencies:
-```bash
-npm run cli -- learning-path "Artificial Intelligence"
-```
-
 ---
 
-## 6. Web UI & Express Server Execution
+## 6. Web Application Execution
 
 Start the Express API server and Web UI:
 ```bash
 # Build TypeScript project & Vite React frontend
 npm run build
-npx vite build --prefix web/client
 
 # Launch Server
 npm run server
 ```
-Navigate to `http://localhost:3000` in your browser.
-
-### Web UI Features:
-- **File Upload:** Single dropzone control with inline progress spinner.
-- **Document Summary:** Card view displaying concise summary text.
-- **Interactive Concept Graph:** SVG-rendered nodes with accent coloring (`#5B8CFF`), pan/zoom controls, node click-to-expand details, and color-coded relationship edge legends (`prerequisite`, `related-to`, `part-of`).
-- **Recommended Learning Path:** Ordered sequence list highlighting prerequisite dependencies for structured study.
-- **Flashcard Cards & Exports:** Expandable Q&A flashcard list with instant JSON/CSV file download buttons.
-- **Topic Browser:** Filterable list for browsing stored topics.
+Navigate to `http://localhost:3000` in your browser to access **SynthLearn**.
 
 ---
 
@@ -192,44 +179,17 @@ Navigate to `http://localhost:3000` in your browser.
 
 Run automated unit and integration tests:
 ```bash
-# Run full automated test suite
 npm run test
 ```
 
-Or run individual test modules:
-```bash
-node node_modules/tsx/dist/cli.mjs tests/parserSmoke.test.ts
-node node_modules/tsx/dist/cli.mjs tests/videoParser.test.ts
-node node_modules/tsx/dist/cli.mjs tests/schemaValidation.test.ts
-node node_modules/tsx/dist/cli.mjs tests/edgeCases.test.ts
-node node_modules/tsx/dist/cli.mjs tests/crossDocumentDedupe.test.ts
-node node_modules/tsx/dist/cli.mjs tests/learningPath.test.ts
-node node_modules/tsx/dist/cli.mjs tests/repositoryRoundtrip.test.ts
-node node_modules/tsx/dist/cli.mjs tests/retrievalByTopic.test.ts
-node node_modules/tsx/dist/cli.mjs tests/webApi.test.ts
-node node_modules/tsx/dist/cli.mjs tests/cliSmoke.test.ts
-```
-
 ---
 
-## 8. Scaling & Roadmap
+## 8. Project Documentation Index
 
-- **Database Transition**: Replace SQLite with PostgreSQL / Supabase via isolated repository interfaces without modifying upper pipeline layers.
-- **Async Job Queue**: Introduce Redis-backed BullMQ job queues for async batch file processing.
-- **Parallel Chunk Extraction**: Execute chunk-level LLM extractions concurrently using worker pools.
-- **Vector DB Integration**: Scale local n-gram TF-IDF embeddings to PGVector or Qdrant for large-scale semantic discovery.
-- **Caching Layer**: Wrap retrieval functions in a Redis LRU cache for sub-millisecond graph query responses.
-
-For detailed scaling specifications, see [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md).
-
----
-
-## 9. Project Documentation Index
-
-- [artifacts/REQUIREMENTS.md](artifacts/REQUIREMENTS.md) — Functional and non-functional requirements single source of truth.
+- [artifacts/REQUIREMENTS.md](artifacts/REQUIREMENTS.md) — Functional and non-functional requirements.
 - [artifacts/SETTINGS.md](artifacts/SETTINGS.md) — Project conventions and tech stack constraints.
 - [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) — System architecture, module boundaries, and scaling strategy.
-- [artifacts/DATABASE.md](artifacts/DATABASE.md) — SQLite schema definition and indexing rules.
+- [artifacts/DATABASE.md](artifacts/DATABASE.md) — MongoDB schemas and index definitions.
 - [artifacts/API.md](artifacts/API.md) — CLI and Express Web API specifications.
-- [artifacts/DESIGN_SYSTEM.md](artifacts/DESIGN_SYSTEM.md) — Web UI design tokens, color palette, and component specifications.
+- [artifacts/DESIGN_SYSTEM_V2.md](artifacts/DESIGN_SYSTEM_V2.md) — SynthLearn Web UI design tokens, color palette, and component specifications.
 - [artifacts/TESTING.md](artifacts/TESTING.md) — Test strategy and pre-demo verification checklist.

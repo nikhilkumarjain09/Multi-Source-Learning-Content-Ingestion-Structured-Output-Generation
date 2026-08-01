@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Brain, Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
+import { BrandHeader } from '../branding/BrandHeader';
+import { BRANDING } from '../../config/branding';
 
 interface LoginViewProps {
   onNavigateToSignup: () => void;
@@ -55,27 +57,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         boxShadow: 'var(--shadow-lg)',
       }}>
         {/* Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--accent) 0%, var(--purple-accent) 100%)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '0.85rem',
-            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
-          }}>
-            <Brain size={24} color="#ffffff" />
-          </div>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-            Sign in to CognitiveAI
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Enterprise AI Learning Content Workspace
-          </p>
-        </div>
+        <BrandHeader title={`Sign in to ${BRANDING.APP_NAME}`} subtitle={BRANDING.APP_TAGLINE} />
 
         {/* Error Alert */}
         {error && (

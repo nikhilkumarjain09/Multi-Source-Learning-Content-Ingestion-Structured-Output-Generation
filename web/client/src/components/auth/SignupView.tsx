@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Brain, Lock, Mail, User, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Lock, Mail, User, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
+import { BrandHeader } from '../branding/BrandHeader';
+import { BRANDING } from '../../config/branding';
 
 interface SignupViewProps {
   onNavigateToLogin: () => void;
@@ -17,7 +19,6 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Password strength meter rules
   const hasMinLen = password.length >= 8;
   const hasUpper = /[A-Z]/.test(password);
   const hasLower = /[a-z]/.test(password);
@@ -68,27 +69,7 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
         boxShadow: 'var(--shadow-lg)',
       }}>
         {/* Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--accent) 0%, var(--purple-accent) 100%)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '0.85rem',
-            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
-          }}>
-            <Brain size={24} color="#ffffff" />
-          </div>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-            Create Your Account
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Get started with CognitiveAI Learning Workspace
-          </p>
-        </div>
+        <BrandHeader title={`Join ${BRANDING.APP_NAME}`} subtitle="Get started with your AI learning workspace" />
 
         {/* Status Alerts */}
         {error && (

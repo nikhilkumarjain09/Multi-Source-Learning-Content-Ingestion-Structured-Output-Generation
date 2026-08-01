@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
+import { BRANDING } from '../config/branding';
 
 interface DashboardViewProps {
   analytics: any;
@@ -60,7 +61,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
             <Sparkles size={20} color="var(--accent)" />
             <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              AI Learning Workspace Overview
+              {BRANDING.APP_NAME} Learning Workspace Overview
             </h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '600px' }}>
@@ -159,9 +160,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               border: '1px dashed var(--border-color)',
             }}>
               <UploadCloud size={32} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
-              <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>No documents ingested yet</p>
+              <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>No learning documents yet.</p>
               <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '1rem' }}>
-                Upload a PDF, plain-text transcript, or VTT video caption file to begin.
+                Upload your first document to let {BRANDING.APP_NAME} generate summaries, flashcards, and knowledge graphs.
               </p>
               <button className="btn-secondary" onClick={onOpenUpload}>
                 Ingest Seed File

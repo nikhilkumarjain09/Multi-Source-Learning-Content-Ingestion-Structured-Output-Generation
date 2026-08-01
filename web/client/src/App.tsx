@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { BRANDING } from './config/branding';
+import { BrandLoading } from './components/branding/BrandLoading';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { LoginView } from './components/auth/LoginView';
 import { SignupView } from './components/auth/SignupView';
@@ -147,12 +149,33 @@ const WorkspaceApp: React.FC = () => {
     }
   };
 
+  // Dynamic Document Title update
+  useEffect(() => {
+    const tabTitles: Record<NavTab, string> = {
+      dashboard: 'Dashboard',
+      documents: 'Documents',
+      queue: 'Processing Queue',
+      graph: 'Knowledge Graph',
+      concepts: 'Concepts Index',
+      flashcards: 'Flashcards',
+      'learning-paths': 'Learning Paths',
+      summaries: 'Summary Engine',
+      'ai-insights': 'AI Insights',
+      topics: 'Topic Matrix',
+      analytics: 'Analytics',
+      exports: 'Exports Hub',
+      settings: 'Settings',
+    };
+
+    if (isAuthenticated) {
+      document.title = `${tabTitles[activeTab] || 'Workspace'} • ${BRANDING.APP_NAME}`;
+    } else {
+      document.title = BRANDING.APP_NAME;
+    }
+  }, [activeTab, isAuthenticated]);
+
   if (isLoading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-base)', color: 'var(--text-muted)' }}>
-        Authenticating CognitiveAI Workspace...
-      </div>
-    );
+    return <BrandLoading message="Authenticating your SynthLearn learning workspace..." />;
   }
 
   // Render Authentication Flow for Unauthenticated Guests
