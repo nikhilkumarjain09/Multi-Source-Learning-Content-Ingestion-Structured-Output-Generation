@@ -286,7 +286,35 @@ app.post('/api/auth/verify-email', async (req, res) => {
       return;
     }
 
-    res.status(200).json({ success: true, message: 'Email verified successfully! You can now log in.' });
+    // Re-fetch user after verification to get updated isEmailVerified flag
+    const verifiedUser = await UserModel.findOne({ email: normalizedEmail });
+    if (!verifiedUser) {
+      res.status(404).json({ error: 'Account not found after verification.' });
+      return;
+    }
+
+    // Auto-login: generate tokens so user lands directly on dashboard
+    const payload = { userId: verifiedUser.id, email: verifiedUser.email, role: verifiedUser.role };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = await createAndStoreRefreshToken(verifiedUser.id, req.headers['user-agent'] || 'Web Browser');
+
+    verifiedUser.lastLogin = new Date();
+    await verifiedUser.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully! Welcome to SynthLearn.',
+      accessToken,
+      refreshToken,
+      user: {
+        id: verifiedUser.id,
+        fullName: verifiedUser.fullName,
+        email: verifiedUser.email,
+        role: verifiedUser.role,
+        isEmailVerified: verifiedUser.isEmailVerified,
+        lastLogin: verifiedUser.lastLogin,
+      },
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Failed to verify email.' });
   }

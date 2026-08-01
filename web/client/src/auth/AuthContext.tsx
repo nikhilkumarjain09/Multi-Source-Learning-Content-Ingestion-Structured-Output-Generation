@@ -17,6 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithTokens: (user: UserProfile, accessToken: string, refreshToken: string) => void;
   signup: (fullName: string, email: string, password: string, confirmPassword: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   logout: () => Promise<void>;
   logoutAllSessions: () => Promise<void>;
@@ -93,6 +94,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error during login.' };
     }
+  };
+
+  const loginWithTokens = (userData: UserProfile, at: string, rt: string) => {
+    setUser(userData);
+    setAccessToken(at);
+    setRefreshToken(rt);
   };
 
   const signup = async (fullName: string, email: string, password: string, confirmPassword: string) => {
@@ -193,6 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginWithTokens,
         signup,
         logout,
         logoutAllSessions,

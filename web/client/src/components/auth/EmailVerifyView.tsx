@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ShieldCheck, ArrowLeft, RefreshCw, AlertCircle, CheckCircle2, MailOpen } from 'lucide-react';
+import { useAuth } from '../../auth/AuthContext';
 import { AuthCard } from './AuthCard';
 import { AuthFooter } from './AuthFooter';
 import { BrandHeader } from '../branding/BrandHeader';
@@ -18,6 +19,7 @@ export const EmailVerifyView: React.FC<EmailVerifyViewProps> = ({
   onNavigateToLogin,
   embedded = false,
 }) => {
+  const { loginWithTokens } = useAuth();
   const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -99,8 +101,14 @@ export const EmailVerifyView: React.FC<EmailVerifyViewProps> = ({
       setLoading(false);
 
       if (res.ok) {
-        setSuccess('Email verified! Redirecting to login…');
-        setTimeout(() => onVerified(), 1800);
+        // Auto-login: set auth state directly from returned tokens → App renders dashboard
+        if (data.accessToken && data.refreshToken && data.user) {
+          loginWithTokens(data.user, data.accessToken, data.refreshToken);
+        } else {
+          // Fallback: slide to login
+          setSuccess('Email verified! Redirecting to login…');
+          setTimeout(() => onVerified(), 1800);
+        }
       } else {
         setError(data.error || 'Invalid or expired OTP. Please try again.');
         setDigits(['', '', '', '', '', '']);
