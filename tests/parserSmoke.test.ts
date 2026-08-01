@@ -29,6 +29,19 @@ async function runParserSmokeTests() {
   }
   console.log('PDF Parser Smoke Test PASSED.');
 
+  // 3. Video/Audio VTT Transcript Parser Test
+  const vttPath = 'seed-data/transcripts/lecture_video.vtt';
+  const videoParser = getParserForFile(vttPath);
+  const videoResult = await videoParser.parse(vttPath);
+
+  if (!videoResult.rawText || videoResult.rawText.trim().length === 0) {
+    throw new Error('Video/Audio parser returned empty rawText');
+  }
+  if (!videoResult.rawText.includes('Deep Learning')) {
+    throw new Error('Video/Audio parser rawText missing expected content');
+  }
+  console.log('Video/Audio Transcript Parser Smoke Test PASSED.');
+
   console.log('\nAll Parser Smoke Tests PASSED Successfully!');
 }
 
