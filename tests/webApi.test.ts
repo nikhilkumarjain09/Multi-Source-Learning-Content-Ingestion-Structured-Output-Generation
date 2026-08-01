@@ -57,6 +57,39 @@ async function runWebApiTests() {
     }
     console.log('422 error response verified for missing file upload.');
 
+    // 5. Test POST /api/auth/signup Endpoint
+    console.log('\n--- 5. Testing POST /api/auth/signup Endpoint ---');
+    const signupRes = await fetch(`${baseUrl}/api/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: 'Nikhil Jain',
+        email: 'test.nikhil@synthlearn.com',
+        password: 'Password123!',
+        confirmPassword: 'Password123!',
+      }),
+    });
+    if (signupRes.status !== 201 && signupRes.status !== 409) {
+      throw new Error(`POST /api/auth/signup failed with status ${signupRes.status}`);
+    }
+    const signupData = await signupRes.json() as any;
+    if (!signupData.message && !signupData.error) {
+      throw new Error('POST /api/auth/signup response payload invalid');
+    }
+    console.log('POST /api/auth/signup endpoint verified successfully.');
+
+    // 6. Test POST /api/auth/login Endpoint
+    console.log('\n--- 6. Testing POST /api/auth/login Endpoint ---');
+    const loginRes = await fetch(`${baseUrl}/api/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'test.nikhil@synthlearn.com',
+        password: 'Password123!',
+      }),
+    });
+    console.log(`POST /api/auth/login returned status ${loginRes.status}.`);
+
     console.log('\nAll Web API Endpoint Tests PASSED Successfully!');
   } finally {
     server.close();

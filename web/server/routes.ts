@@ -792,6 +792,11 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+// API 404 Fallback: Ensure /api requests return structured JSON instead of HTML
+app.all('/api/*', (req, res) => {
+  res.status(404).json({ error: `API endpoint non-existent or unsupported method: ${req.method} ${req.path}` });
+});
+
 // Serve static frontend bundle if available (Must be placed AFTER all /api routes)
 const distClientDir = path.resolve(__dirname, '../client/dist');
 if (fs.existsSync(distClientDir)) {
