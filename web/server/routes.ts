@@ -248,6 +248,51 @@ app.get('/api/auth/verify-email', async (req, res) => {
 });
 
 /**
+ * POST /api/auth/verify-email
+ * Verifies email using 6-digit OTP entered on the OTP screen after signup.
+ * Body: { email: string, otp: string }
+ */
+app.post('/api/auth/verify-email', async (req, res) => {
+  try {
+    const { email, otp } = req.body || {};
+
+    if (!email || !otp) {
+      res.status(422).json({ error: 'Email and OTP code are required.' });
+      return;
+    }
+
+    if (!/^\d{6}$/.test(String(otp).trim())) {
+      res.status(422).json({ error: 'OTP must be a 6-digit numeric code.' });
+      return;
+    }
+
+    await connectDB();
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await UserModel.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      res.status(404).json({ error: 'No account found for this email address.' });
+      return;
+    }
+
+    if (user.isEmailVerified) {
+      res.status(200).json({ success: true, message: 'Email is already verified. You can log in.' });
+      return;
+    }
+
+    const isVerified = await verifyEmailToken(String(otp).trim());
+    if (!isVerified) {
+      res.status(400).json({ error: 'Invalid or expired OTP code. Please request a new one.' });
+      return;
+    }
+
+    res.status(200).json({ success: true, message: 'Email verified successfully! You can now log in.' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to verify email.' });
+  }
+});
+
+/**
  * POST /api/auth/resend-verification
  */
 app.post('/api/auth/resend-verification', async (req, res) => {
