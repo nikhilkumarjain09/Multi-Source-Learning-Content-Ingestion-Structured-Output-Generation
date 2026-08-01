@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, Lock, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { AuthCard } from './AuthCard';
 import { AuthInput } from './AuthInput';
@@ -10,10 +10,11 @@ import { BRANDING } from '../../config/branding';
 
 interface SignupViewProps {
   onNavigateToLogin: () => void;
+  onSignupSuccess?: (email: string) => void;
   embedded?: boolean;
 }
 
-export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin, embedded = false }) => {
+export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin, onSignupSuccess, embedded = false }) => {
   const { signup } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -28,7 +29,6 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin, embed
   const [termsError, setTermsError] = useState<string | null>(null);
 
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const validateName = (val: string) => {
@@ -80,7 +80,6 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin, embed
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGlobalError(null);
-    setSuccessMsg(null);
 
     const isNameValid = validateName(fullName);
     const isEmailValid = validateEmail(email);
@@ -103,7 +102,10 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin, embed
     if (!result.success) {
       setGlobalError(result.error || 'Failed to create account.');
     } else {
-      setSuccessMsg(result.message || 'Account created successfully! Check email inbox & Spam folder.');
+      // Navigate to OTP verification screen
+      if (onSignupSuccess) {
+        onSignupSuccess(email.trim());
+      }
     }
   };
 
@@ -135,25 +137,7 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin, embed
           </div>
         )}
 
-        {successMsg && (
-          <div
-            style={{
-              backgroundColor: 'var(--success-glow)',
-              border: '1px solid var(--success)',
-              borderRadius: 'var(--border-radius-sm)',
-              padding: '0.5rem 0.65rem',
-              fontSize: '11px',
-              color: '#16A34A',
-              marginBottom: '0.5rem',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '0.3rem',
-            }}
-          >
-            <CheckCircle2 size={15} style={{ marginTop: '1px', flexShrink: 0 }} />
-            <span>{successMsg}</span>
-          </div>
-        )}
+
 
         {/* Form Controls */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
