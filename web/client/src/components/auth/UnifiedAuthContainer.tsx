@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { LoginView } from './LoginView';
 import { SignupView } from './SignupView';
 import { ForgotPasswordView } from './ForgotPasswordView';
@@ -13,113 +13,105 @@ interface UnifiedAuthContainerProps {
   resetToken?: string;
 }
 
-// Shared panel wrapper — provides padding inside each panel so the sliding
-// track can be flush/zero-padded against the card edges (no bleed-through).
-const Panel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div
-    style={{
-      width: '20%',
-      height: '100%',
-      flexShrink: 0,
-      boxSizing: 'border-box',
-      padding: '1.75rem',
-      overflowY: 'auto',
-      overflowX: 'hidden',
-    }}
-  >
-    {children}
-  </div>
-);
+const TAB_ORDER: AuthTab[] = ['login', 'signup', 'forgot-password', 'reset-password', 'verify-email'];
+
+// Slide-in keyframes injected once
+const SLIDE_STYLE = `
+  @keyframes slideInFromRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+  @keyframes slideInFromLeft {
+    from { transform: translateX(-100%); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+  }
+`;
 
 export const UnifiedAuthContainer: React.FC<UnifiedAuthContainerProps> = ({
   initialPage = 'login',
   resetToken = '',
 }) => {
   const [activeTab, setActiveTab] = useState<AuthTab>(initialPage);
+  const [direction, setDirection] = useState<'right' | 'left'>('right');
   const [pendingEmail, setPendingEmail] = useState('');
+  const prevTabRef = useRef<AuthTab>(initialPage);
 
-  // translateX is relative to the track element (500% of card width).
-  // Each 20% step = exactly 1 card-width slide.
-  const tabIndex: Record<AuthTab, number> = {
-    'login': 0,
-    'signup': 1,
-    'forgot-password': 2,
-    'reset-password': 3,
-    'verify-email': 4,
+  const navigate = (tab: AuthTab) => {
+    const curIdx = TAB_ORDER.indexOf(prevTabRef.current);
+    const nextIdx = TAB_ORDER.indexOf(tab);
+    setDirection(nextIdx >= curIdx ? 'right' : 'left');
+    prevTabRef.current = tab;
+    setActiveTab(tab);
   };
-
-  const translateX = `${tabIndex[activeTab] * -20}%`;
 
   const handleSignupSuccess = (email: string) => {
     setPendingEmail(email);
-    setActiveTab('verify-email');
+    navigate('verify-email');
   };
 
   const handleVerified = () => {
-    setActiveTab('login');
+    navigate('login');
     setPendingEmail('');
   };
 
+  // Key forces remount + re-animation on every tab change
+  const animKey = activeTab + direction;
+
+  const animation = `${direction === 'right' ? 'slideInFromRight' : 'slideInFromLeft'} 0.38s cubic-bezier(0.16, 1, 0.3, 1) both`;
+
   return (
-    // noPadding — padding lives inside each Panel wrapper instead
-    <AuthCard noPadding>
-      {/* Clip window — exactly card-sized */}
-      <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
-        {/* Sliding track — 5 panels wide */}
+    <AuthCard>
+      <style>{SLIDE_STYLE}</style>
+
+      {/* Clip window — same size as card content area */}
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative', minHeight: 0 }}>
+        {/* Animated panel — only the active view is in the DOM */}
         <div
+          key={animKey}
           style={{
+            position: 'absolute',
+            inset: 0,
+            animation,
             display: 'flex',
-            width: '500%',
+            flexDirection: 'column',
             height: '100%',
-            transform: `translateX(${translateX})`,
-            transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
-            willChange: 'transform',
           }}
         >
-          {/* Panel 1: Login */}
-          <Panel>
+          {activeTab === 'login' && (
             <LoginView
-              onNavigateToSignup={() => setActiveTab('signup')}
-              onNavigateToForgotPassword={() => setActiveTab('forgot-password')}
+              onNavigateToSignup={() => navigate('signup')}
+              onNavigateToForgotPassword={() => navigate('forgot-password')}
               embedded
             />
-          </Panel>
-
-          {/* Panel 2: Signup */}
-          <Panel>
+          )}
+          {activeTab === 'signup' && (
             <SignupView
-              onNavigateToLogin={() => setActiveTab('login')}
+              onNavigateToLogin={() => navigate('login')}
               onSignupSuccess={handleSignupSuccess}
               embedded
             />
-          </Panel>
-
-          {/* Panel 3: Forgot Password */}
-          <Panel>
+          )}
+          {activeTab === 'forgot-password' && (
             <ForgotPasswordView
-              onNavigateToLogin={() => setActiveTab('login')}
+              onNavigateToLogin={() => navigate('login')}
               embedded
             />
-          </Panel>
-
-          {/* Panel 4: Reset Password */}
-          <Panel>
+          )}
+          {activeTab === 'reset-password' && (
             <ResetPasswordView
               token={resetToken}
-              onNavigateToLogin={() => setActiveTab('login')}
+              onNavigateToLogin={() => navigate('login')}
               embedded
             />
-          </Panel>
-
-          {/* Panel 5: Email OTP Verification */}
-          <Panel>
+          )}
+          {activeTab === 'verify-email' && (
             <EmailVerifyView
               email={pendingEmail}
               onVerified={handleVerified}
-              onNavigateToLogin={() => setActiveTab('login')}
+              onNavigateToLogin={() => navigate('login')}
               embedded
             />
-          </Panel>
+          )}
         </div>
       </div>
     </AuthCard>

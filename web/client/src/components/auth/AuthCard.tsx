@@ -3,10 +3,9 @@ import React from 'react';
 interface AuthCardProps {
   children: React.ReactNode;
   style?: React.CSSProperties;
-  noPadding?: boolean;
 }
 
-export const AuthCard: React.FC<AuthCardProps> = ({ children, style = {}, noPadding = false }) => {
+export const AuthCard: React.FC<AuthCardProps> = ({ children, style = {} }) => {
   return (
     <div
       style={{
@@ -16,11 +15,10 @@ export const AuthCard: React.FC<AuthCardProps> = ({ children, style = {}, noPadd
         width: '100%',
         maxWidth: '430px',
         height: '560px',
-        padding: noPadding ? '0' : '1.75rem',
+        padding: '1.75rem',
         boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02)',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
         overflow: 'hidden',
         animation: 'fadeIn 0.25s ease-in-out',
         boxSizing: 'border-box',
