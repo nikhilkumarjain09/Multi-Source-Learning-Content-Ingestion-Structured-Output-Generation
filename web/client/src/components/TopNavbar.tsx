@@ -1,19 +1,24 @@
 import React from 'react';
 import { Search, Plus, Bell, Command, User, Sparkles } from 'lucide-react';
 import { NavTab } from './Sidebar';
+import { UserProfile } from '../auth/AuthContext';
 
 interface TopNavbarProps {
   activeTab: NavTab;
   selectedTopic?: string | null;
+  user?: UserProfile | null;
   onOpenUploadModal: () => void;
   onOpenCommandPalette: () => void;
+  onOpenProfileModal?: () => void;
 }
 
 export const TopNavbar: React.FC<TopNavbarProps> = ({
   activeTab,
   selectedTopic,
+  user,
   onOpenUploadModal,
   onOpenCommandPalette,
+  onOpenProfileModal,
 }) => {
   const getTabLabel = (tab: NavTab) => {
     switch (tab) {
@@ -33,6 +38,9 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
       default: return 'Workspace';
     }
   };
+
+  const initial = user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'AI';
+  const displayName = user?.fullName || 'Senior Engineer';
 
   return (
     <header style={{
@@ -131,15 +139,19 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         </button>
 
         {/* User Profile Pill */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          backgroundColor: 'var(--bg-base)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '20px',
-          padding: '3px 10px 3px 4px',
-        }}>
+        <button
+          onClick={onOpenProfileModal}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            backgroundColor: 'var(--bg-base)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '20px',
+            padding: '3px 10px 3px 4px',
+            cursor: 'pointer',
+          }}
+        >
           <div style={{
             width: '28px',
             height: '28px',
@@ -152,12 +164,12 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             fontWeight: 600,
             fontSize: '12px',
           }}>
-            AI
+            {initial}
           </div>
           <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)' }}>
-            Senior Engineer
+            {displayName}
           </span>
-        </div>
+        </button>
       </div>
     </header>
   );

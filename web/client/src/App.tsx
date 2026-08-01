@@ -1,4 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './auth/AuthContext';
+import { LoginView } from './components/auth/LoginView';
+import { SignupView } from './components/auth/SignupView';
+import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
+import { ResetPasswordView } from './components/auth/ResetPasswordView';
+import { UserProfileModal } from './components/auth/UserProfileModal';
 import { Sidebar, NavTab } from './components/Sidebar';
 import { TopNavbar } from './components/TopNavbar';
 import { CommandPalette } from './components/CommandPalette';
@@ -19,11 +25,16 @@ import { SettingsView } from './components/SettingsView';
 import { LearningPathData } from './components/LearningPathPanel';
 import { X } from 'lucide-react';
 
-export const App: React.FC = () => {
+const WorkspaceApp: React.FC = () => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const [authPage, setAuthPage] = useState<'login' | 'signup' | 'forgot-password' | 'reset-password'>('login');
+  const [resetToken, setResetToken] = useState<string>('');
+
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeProcessingFile, setActiveProcessingFile] = useState<string | null>(null);
 
@@ -40,45 +51,47 @@ export const App: React.FC = () => {
   const [graphEdges, setGraphEdges] = useState<any[]>([]);
   const [learningPath, setLearningPath] = useState<LearningPathData | null>(null);
 
-  // Initial Data Fetch
+  // Check URL parameters for Reset Password / Verification tokens
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (window.location.pathname.includes('/reset-password') || (token && !window.location.pathname.includes('/verify-email'))) {
+      if (token) {
+        setResetToken(token);
+        setAuthPage('reset-password');
+      }
+    }
+  }, []);
+
   const refreshData = async () => {
     try {
+      const token = localStorage.getItem('cognitive_access_token');
+      const headers: Record<string, string> = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+
       const [docsRes, conceptsRes, topicsRes, flashcardsRes, analyticsRes] = await Promise.all([
-        fetch('/api/documents'),
-        fetch('/api/concepts'),
-        fetch('/api/topics'),
-        fetch('/api/flashcards'),
-        fetch('/api/analytics'),
+        fetch('/api/documents', { headers }),
+        fetch('/api/concepts', { headers }),
+        fetch('/api/topics', { headers }),
+        fetch('/api/flashcards', { headers }),
+        fetch('/api/analytics', { headers }),
       ]);
 
-      if (docsRes.ok) {
-        const data = await docsRes.json();
-        setDocuments(data.documents || []);
-      }
-      if (conceptsRes.ok) {
-        const data = await conceptsRes.json();
-        setConcepts(data.concepts || []);
-      }
-      if (topicsRes.ok) {
-        const data = await topicsRes.json();
-        setTopics(data.topics || []);
-      }
-      if (flashcardsRes.ok) {
-        const data = await flashcardsRes.json();
-        setFlashcards(data.flashcards || []);
-      }
-      if (analyticsRes.ok) {
-        const data = await analyticsRes.json();
-        setAnalytics(data);
-      }
+      if (docsRes.ok) setDocuments((await docsRes.json()).documents || []);
+      if (conceptsRes.ok) setConcepts((await conceptsRes.json()).concepts || []);
+      if (topicsRes.ok) setTopics((await topicsRes.json()).topics || []);
+      if (flashcardsRes.ok) setFlashcards((await flashcardsRes.json()).flashcards || []);
+      if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
     } catch (err) {
       console.error('Failed to load workspace data:', err);
     }
   };
 
   useEffect(() => {
-    refreshData();
-  }, []);
+    if (isAuthenticated) {
+      refreshData();
+    }
+  }, [isAuthenticated]);
 
   const handleIngestSuccess = (data: any) => {
     setIsUploadModalOpen(false);
@@ -99,7 +112,11 @@ export const App: React.FC = () => {
   const handleSelectTopic = async (topic: string) => {
     setActiveTopic(topic);
     try {
-      const response = await fetch(`/api/topics/${encodeURIComponent(topic)}`);
+      const token = localStorage.getItem('cognitive_access_token');
+      const headers: Record<string, string> = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(`/api/topics/${encodeURIComponent(topic)}`, { headers });
       const data = await response.json();
       if (response.ok) {
         setSummaryText(data.summary || '');
@@ -117,7 +134,11 @@ export const App: React.FC = () => {
 
   const handleDeleteDocument = async (docId: string) => {
     try {
-      const res = await fetch(`/api/documents/${docId}`, { method: 'DELETE' });
+      const token = localStorage.getItem('cognitive_access_token');
+      const headers: Record<string, string> = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const res = await fetch(`/api/documents/${docId}`, { method: 'DELETE', headers });
       if (res.ok) {
         refreshData();
       }
@@ -126,6 +147,34 @@ export const App: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-base)', color: 'var(--text-muted)' }}>
+        Authenticating CognitiveAI Workspace...
+      </div>
+    );
+  }
+
+  // Render Authentication Flow for Unauthenticated Guests
+  if (!isAuthenticated) {
+    if (authPage === 'signup') {
+      return <SignupView onNavigateToLogin={() => setAuthPage('login')} />;
+    }
+    if (authPage === 'forgot-password') {
+      return <ForgotPasswordView onNavigateToLogin={() => setAuthPage('login')} />;
+    }
+    if (authPage === 'reset-password') {
+      return <ResetPasswordView token={resetToken} onNavigateToLogin={() => setAuthPage('login')} />;
+    }
+    return (
+      <LoginView
+        onNavigateToSignup={() => setAuthPage('signup')}
+        onNavigateToForgotPassword={() => setAuthPage('forgot-password')}
+      />
+    );
+  }
+
+  // Render Authenticated SaaS Application Workspace
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-base)' }}>
       {/* Sidebar Navigation */}
@@ -142,8 +191,10 @@ export const App: React.FC = () => {
         <TopNavbar
           activeTab={activeTab}
           selectedTopic={activeTopic}
+          user={user}
           onOpenUploadModal={() => setIsUploadModalOpen(true)}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onOpenProfileModal={() => setIsProfileModalOpen(true)}
         />
 
         {/* Dynamic View Tab Body */}
@@ -264,6 +315,12 @@ export const App: React.FC = () => {
         onSelectTopic={handleSelectTopic}
       />
 
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
+
       {/* Upload Document Modal */}
       {isUploadModalOpen && (
         <div className="modal-overlay" onClick={() => setIsUploadModalOpen(false)}>
@@ -282,6 +339,14 @@ export const App: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <WorkspaceApp />
+    </AuthProvider>
   );
 };
 
