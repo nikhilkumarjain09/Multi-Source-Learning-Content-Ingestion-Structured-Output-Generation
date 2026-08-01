@@ -4,7 +4,7 @@
   "description": "Multi-Source Learning Content Ingestion & Structured Output Generation",
   "main": "dist/cli/index.js",
   "scripts": {
-    "build": "node node_modules/typescript/lib/tsc.js",
+    "build": "node node_modules/typescript/lib/tsc.js && npx vite build web/client",
     "cli": "node node_modules/tsx/dist/cli.mjs src/cli/index.ts",
     "server": "node node_modules/tsx/dist/cli.mjs web/server/routes.ts",
     "db:init": "node node_modules/tsx/dist/cli.mjs src/storage/db.ts",
