@@ -11,6 +11,8 @@ async function testPipeline() {
     sourceType: txtResult.document.sourceType,
     ingestedAt: txtResult.document.ingestedAt,
     conceptsExtracted: txtResult.extraction.concepts.length,
+    flashcardsGenerated: txtResult.flashcards.length,
+    graphNodes: txtResult.graph.nodes.length,
   });
 
   if (txtResult.document.sourceType !== 'transcript') {
@@ -25,6 +27,8 @@ async function testPipeline() {
     sourceType: pdfResult.document.sourceType,
     ingestedAt: pdfResult.document.ingestedAt,
     conceptsExtracted: pdfResult.extraction.concepts.length,
+    flashcardsGenerated: pdfResult.flashcards.length,
+    graphNodes: pdfResult.graph.nodes.length,
   });
 
   if (pdfResult.document.sourceType !== 'pdf') {
