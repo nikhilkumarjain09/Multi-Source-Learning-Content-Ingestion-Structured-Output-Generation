@@ -1,0 +1,8 @@
+# Exclude local dev artifacts from Vercel deployment
+uploads/
+.env
+.env.local
+dist/
+node_modules/.cache
+seed-data/
+*.log

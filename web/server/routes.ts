@@ -36,7 +36,10 @@ import {
 import { sendVerificationEmail, sendPasswordResetEmail } from '../../src/auth/emailService';
 import { authenticateToken, AuthenticatedRequest } from '../../src/auth/authMiddleware';
 
-const uploadDir = path.resolve(process.cwd(), 'uploads');
+// On Vercel the filesystem is read-only except /tmp — use /tmp/uploads in production
+const uploadDir = process.env.VERCEL
+  ? '/tmp/uploads'
+  : path.resolve(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
