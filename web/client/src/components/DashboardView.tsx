@@ -185,8 +185,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <FileText size={18} color="var(--accent)" />
-                    <div>
-                      <h4 style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <h4
+                        title={doc.filename}
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          color: 'var(--text-primary)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '220px',
+                          cursor: 'default',
+                        }}
+                      >
                         {doc.filename}
                       </h4>
                       <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>

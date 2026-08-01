@@ -146,8 +146,21 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                     <FileText size={22} color="var(--accent)" />
-                    <div>
-                      <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <h3
+                        title={doc.filename}
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: 'var(--text-primary)',
+                          lineHeight: 1.3,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '200px',
+                          cursor: 'default',
+                        }}
+                      >
                         {doc.filename}
                       </h3>
                       <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>

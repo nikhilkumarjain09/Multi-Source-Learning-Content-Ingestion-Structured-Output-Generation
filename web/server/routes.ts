@@ -529,7 +529,7 @@ app.post('/api/ingest', upload.single('file'), async (req, res) => {
 
   try {
     await fs.promises.rename(tempFilePath, targetFilePath);
-    const result = await runIngestionPipeline(targetFilePath);
+    const result = await runIngestionPipeline(targetFilePath, originalName);
 
     try {
       await fs.promises.unlink(targetFilePath);

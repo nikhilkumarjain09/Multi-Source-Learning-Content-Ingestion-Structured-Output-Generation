@@ -15,7 +15,7 @@ export interface SourceDocument {
  * Normalizes a raw input file into a canonical SourceDocument format.
  * Inspects file extension, selects parser, extracts raw text, and verifies language support.
  */
-export async function normalizeDocument(filePath: string): Promise<SourceDocument> {
+export async function normalizeDocument(filePath: string, originalName?: string): Promise<SourceDocument> {
   const parser = getParserForFile(filePath);
   const parsed = await parser.parse(filePath);
 
@@ -28,9 +28,12 @@ export async function normalizeDocument(filePath: string): Promise<SourceDocumen
     ? 'pdf'
     : 'transcript';
 
+  // Use provided originalName if available, otherwise fall back to path basename
+  const filename = originalName || filePath.split(/[/\\]/).pop() || filePath;
+
   return {
     id: uuidv4(),
-    filename: filePath.split(/[/\\]/).pop() || filePath,
+    filename,
     sourceType,
     rawText: parsed.rawText,
     metadata: parsed.metadata || {},

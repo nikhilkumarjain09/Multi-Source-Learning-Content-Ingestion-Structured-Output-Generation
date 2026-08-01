@@ -35,12 +35,12 @@ export interface IngestionPipelineResult {
  * the existing concept_id is reused and the new document is linked via the concept_documents
  * junction table / documentIds list, rather than inserting a duplicate concept row.
  */
-export async function runIngestionPipeline(filePath: string): Promise<IngestionPipelineResult> {
+export async function runIngestionPipeline(filePath: string, originalName?: string): Promise<IngestionPipelineResult> {
   if (!filePath) {
     throw new Error('File path must be provided to runIngestionPipeline');
   }
 
-  const normalizedDoc = await normalizeDocument(filePath);
+  const normalizedDoc = await normalizeDocument(filePath, originalName);
   const extractionResult = await extractConceptsFromDocument(normalizedDoc);
 
   const flashcards = generateFlashcardsFromConcepts(extractionResult.concepts);
