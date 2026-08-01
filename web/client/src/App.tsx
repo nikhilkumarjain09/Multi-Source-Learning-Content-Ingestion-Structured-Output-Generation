@@ -27,6 +27,7 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { ExportsView } from './components/ExportsView';
 import { SettingsView } from './components/SettingsView';
 import { LearningPathData } from './components/LearningPathPanel';
+import { CelebrationOverlay } from './components/CelebrationOverlay';
 import { X } from 'lucide-react';
 
 const WorkspaceApp: React.FC = () => {
@@ -41,6 +42,7 @@ const WorkspaceApp: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeProcessingFile, setActiveProcessingFile] = useState<string | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Global Data State
   const [documents, setDocuments] = useState<any[]>([]);
@@ -92,8 +94,14 @@ const WorkspaceApp: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       refreshData();
+      // Show celebration only once per user (first-time visit)
+      const celebKey = `synthlearn_celebrated_${user.id}`;
+      if (!localStorage.getItem(celebKey)) {
+        setShowCelebration(true);
+        localStorage.setItem(celebKey, '1');
+      }
     }
   }, [isAuthenticated]);
 
@@ -352,6 +360,13 @@ const WorkspaceApp: React.FC = () => {
             <UploadControl onIngestSuccess={handleIngestSuccess} />
           </div>
         </div>
+      )}
+      {/* First-time user celebration overlay */}
+      {showCelebration && user && (
+        <CelebrationOverlay
+          userName={user.fullName}
+          onDismiss={() => setShowCelebration(false)}
+        />
       )}
     </div>
   );
