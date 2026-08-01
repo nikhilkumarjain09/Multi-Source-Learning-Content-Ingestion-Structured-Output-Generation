@@ -1,6 +1,6 @@
 import { detectLanguage } from '../src/ingestion/language';
 import { reconcileMultiChunkExtractions, mergeChunkExtractions } from '../src/extraction/mergeChunks';
-import { ExtractionResult } from '../src/extraction/types';
+import { ExtractionResult } from '../src/validation/schema';
 import { LLMProvider } from '../src/extraction/providers';
 
 async function runEdgeCaseTests() {
