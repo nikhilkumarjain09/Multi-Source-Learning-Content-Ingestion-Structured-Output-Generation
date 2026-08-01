@@ -1,11 +1,16 @@
-import { getParserForFile } from './ingestion/registry';
 import { normalizeDocument, SourceDocument } from './normalization/normalize';
 import { extractConceptsFromDocument } from './extraction/extract';
 import { generateFlashcardsFromConcepts, Flashcard } from './outputs/flashcardExport';
 import { exportConceptGraph, ConceptGraph } from './outputs/graphExport';
 import { ExtractionResult } from './validation/schema';
 import { saveDocument } from './storage/documentRepository';
-import { saveConcepts, Concept } from './storage/conceptRepository';
+import {
+  saveConcepts,
+  Concept,
+  findConceptByCanonicalName,
+  linkConceptToDocument,
+  updateConceptDescription,
+} from './storage/conceptRepository';
 import { saveRelationships, Relationship } from './storage/relationshipRepository';
 import { saveFlashcards } from './storage/flashcardRepository';
 import { saveSummary } from './storage/summaryRepository';
@@ -21,7 +26,12 @@ export interface IngestionPipelineResult {
 
 /**
  * Main Orchestrator for the Learning Content Ingestion & Structured Output Generation Pipeline.
- * Executes: Ingest → Normalize → Extract → Validate/Repair → Structure → Persist.
+ * Executes: Ingest -> Normalize -> Extract -> Validate/Repair -> Structure -> Persist.
+ *
+ * Cross-document concept deduplication:
+ * When a newly extracted concept matches an existing concept in the database (by canonical name),
+ * the existing concept_id is reused and the new document is linked via the concept_documents
+ * junction table, rather than inserting a duplicate concept row.
  */
 export async function runIngestionPipeline(filePath: string): Promise<IngestionPipelineResult> {
   if (!filePath) {
@@ -38,19 +48,47 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
   // 1. Save document
   saveDocument(normalizedDoc);
 
-  // 2. Map & save concepts
-  const conceptMap = new Map<string, string>(); // normalized name -> concept id
-  const conceptEntities: Concept[] = extractionResult.concepts.map((c: any) => {
-    const conceptId = uuidv4();
-    conceptMap.set(c.name.trim().toLowerCase(), conceptId);
-    return {
-      id: conceptId,
-      documentId: normalizedDoc.id,
-      name: c.name.trim(),
-      description: c.description.trim(),
-    };
-  });
-  saveConcepts(conceptEntities);
+  // 2. Map & save concepts with cross-document deduplication
+  const conceptMap = new Map<string, string>(); // canonical name -> concept id
+  const newConcepts: Concept[] = [];
+
+  for (const c of extractionResult.concepts) {
+    const canonicalName = c.name.trim().toLowerCase();
+
+    // Check if a concept with this canonical name already exists in the database
+    const existingConcept = findConceptByCanonicalName(canonicalName);
+
+    if (existingConcept) {
+      // Reuse existing concept_id; link it to the new document via junction table
+      conceptMap.set(canonicalName, existingConcept.id);
+      linkConceptToDocument(existingConcept.id, normalizedDoc.id);
+
+      // Upgrade description if the new one is more detailed
+      if (c.description.trim().length > (existingConcept.description || '').length) {
+        updateConceptDescription(existingConcept.id, c.description.trim());
+      }
+    } else {
+      // New concept: create a fresh row and link to this document
+      const conceptId = uuidv4();
+      conceptMap.set(canonicalName, conceptId);
+      newConcepts.push({
+        id: conceptId,
+        documentId: normalizedDoc.id,
+        name: c.name.trim(),
+        description: c.description.trim(),
+      });
+    }
+  }
+
+  // Persist only genuinely new concept rows
+  if (newConcepts.length > 0) {
+    saveConcepts(newConcepts);
+  }
+
+  // Link all concepts (new and existing) to this document via junction table
+  for (const [, conceptId] of conceptMap) {
+    linkConceptToDocument(conceptId, normalizedDoc.id);
+  }
 
   // 3. Map & save relationships
   const relationshipEntities: Relationship[] = [];
@@ -72,8 +110,9 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
   }
 
   // 4. Map & save flashcards
+  const allConceptIds = Array.from(conceptMap.values());
   const flashcardEntities = flashcards.map(f => {
-    const matchedConceptId = conceptMap.get((f.conceptName || '').trim().toLowerCase()) || conceptEntities[0]?.id;
+    const matchedConceptId = conceptMap.get((f.conceptName || '').trim().toLowerCase()) || allConceptIds[0];
     return {
       id: f.id || uuidv4(),
       conceptId: matchedConceptId,

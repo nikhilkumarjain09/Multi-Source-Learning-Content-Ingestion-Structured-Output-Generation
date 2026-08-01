@@ -1,5 +1,5 @@
 import { Concept, Flashcard, Summary } from '../shared/types';
-import { searchConceptsByName, getConceptsByIds } from '../storage/conceptRepository';
+import { searchConceptsByName, getConceptsByIds, getDocumentIdsForConcept } from '../storage/conceptRepository';
 import { getFlashcardsByConceptIds } from '../storage/flashcardRepository';
 import { getRelationshipsForConceptIds } from '../storage/relationshipRepository';
 import { getSummaryByDocumentId } from '../storage/summaryRepository';
@@ -28,7 +28,10 @@ export interface TopicArtifacts {
 }
 
 /**
- * Retrieves all stored learning artifacts associated with a topic/concept name.
+ * Retrieves all stored learning artifacts associated with a topic/concept name,
+ * aggregated across ALL documents that contributed to the matching concepts
+ * (cross-document deduplication aware).
+ *
  * Queries stored concepts by exact match, falling back to case-insensitive substring match.
  */
 export function getArtifactsByTopic(topicName: string): TopicArtifacts | null {
@@ -75,9 +78,21 @@ export function getArtifactsByTopic(topicName: string): TopicArtifacts | null {
     type: rel.type,
   }));
 
-  // Retrieve summaries for associated documents
-  const documentIds = Array.from(new Set(matchedConcepts.map(c => c.documentId)));
-  const summaryTexts = documentIds
+  // Aggregate summaries across ALL documents linked to matching concepts
+  // via both direct document_id and the concept_documents junction table
+  const documentIds = new Set<string>();
+  for (const concept of matchedConcepts) {
+    // Direct document_id from the concept row
+    documentIds.add(concept.documentId);
+
+    // Additional linked documents from the junction table
+    const linkedDocIds = getDocumentIdsForConcept(concept.id);
+    for (const docId of linkedDocIds) {
+      documentIds.add(docId);
+    }
+  }
+
+  const summaryTexts = Array.from(documentIds)
     .map(docId => getSummaryByDocumentId(docId))
     .filter((s): s is Summary => s !== null && Boolean(s.summaryText))
     .map(s => s.summaryText);
