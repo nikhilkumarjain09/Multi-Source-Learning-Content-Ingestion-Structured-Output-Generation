@@ -41,7 +41,7 @@ export const AuthInput: React.FC<AuthInputProps> = ({
     if (!showPassword) return;
     const timer = setTimeout(() => {
       setShowPassword(false);
-    }, 20000);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [showPassword]);
 
