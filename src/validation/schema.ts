@@ -19,9 +19,10 @@ export const ExtractionResultSchema = z.object({
   summary: z.string().default(''),
 });
 
-export type ValidatedExtractionResult = z.infer<typeof ExtractionResultSchema>;
+export type ExtractionResult = z.infer<typeof ExtractionResultSchema>;
+export type ValidatedExtractionResult = ExtractionResult;
 
-export function parseAndValidateJson(rawText: string): { success: true; data: ValidatedExtractionResult } | { success: false; error: string } {
+export function parseAndValidateJson(rawText: string): ExtractionResult {
   let cleaned = rawText.trim();
   if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```[a-zA-Z]*\n?/, '').replace(/\n?```$/, '').trim();
@@ -31,17 +32,17 @@ export function parseAndValidateJson(rawText: string): { success: true; data: Va
   try {
     parsed = JSON.parse(cleaned);
   } catch (jsonErr: any) {
-    return { success: false, error: `Invalid JSON syntax: ${jsonErr.message}` };
+    throw new Error(`Invalid JSON syntax: ${jsonErr.message}`);
   }
 
   const result = ExtractionResultSchema.safeParse(parsed);
   if (result.success) {
-    return { success: true, data: result.data };
+    return result.data;
   }
 
   const errorMessages = result.error.errors
     .map(err => `${err.path.join('.')}: ${err.message}`)
     .join('; ');
 
-  return { success: false, error: `Schema validation failed: ${errorMessages}` };
+  throw new Error(`Schema validation failed: ${errorMessages}`);
 }

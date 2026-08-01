@@ -17,6 +17,8 @@ export interface ConceptGraphData {
   edges: GraphEdge[];
 }
 
+export type ConceptGraph = ConceptGraphData;
+
 /**
  * Transforms concepts and relationships into graph nodes and edges.
  * Format adheres to API.md specification.
@@ -25,49 +27,17 @@ export function exportConceptGraph(
   concepts: RawExtractedConcept[],
   relationships: RawExtractedRelationship[]
 ): ConceptGraphData {
-  const nodeMap = new Map<string, GraphNode>();
-
-  // Ensure all extracted concepts exist as nodes
-  for (const concept of concepts) {
-    const id = concept.name.trim().toLowerCase();
-    if (!nodeMap.has(id)) {
-      nodeMap.set(id, {
-        id,
-        label: concept.name.trim(),
-        description: concept.description ? concept.description.trim() : '',
-      });
-    }
-  }
-
-  // Ensure concepts referenced in relationships exist as nodes even if missing in concepts list
-  for (const rel of relationships) {
-    const fromId = rel.from.trim().toLowerCase();
-    const toId = rel.to.trim().toLowerCase();
-
-    if (!nodeMap.has(fromId)) {
-      nodeMap.set(fromId, {
-        id: fromId,
-        label: rel.from.trim(),
-        description: '',
-      });
-    }
-    if (!nodeMap.has(toId)) {
-      nodeMap.set(toId, {
-        id: toId,
-        label: rel.to.trim(),
-        description: '',
-      });
-    }
-  }
-
-  const edges: GraphEdge[] = relationships.map(rel => ({
-    from: rel.from.trim().toLowerCase(),
-    to: rel.to.trim().toLowerCase(),
-    type: rel.type,
+  const nodes: GraphNode[] = concepts.map(c => ({
+    id: c.name,
+    label: c.name,
+    description: c.description,
   }));
 
-  return {
-    nodes: Array.from(nodeMap.values()),
-    edges,
-  };
+  const edges: GraphEdge[] = relationships.map(r => ({
+    from: r.from,
+    to: r.to,
+    type: r.type,
+  }));
+
+  return { nodes, edges };
 }

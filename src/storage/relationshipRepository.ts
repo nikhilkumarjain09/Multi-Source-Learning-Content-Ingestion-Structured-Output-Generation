@@ -1,6 +1,8 @@
 import { Relationship } from '../shared/types';
 import { getDatabase } from './db';
 
+export { Relationship };
+
 export function saveRelationships(relationships: Relationship[]): void {
   if (relationships.length === 0) return;
   const db = getDatabase();
@@ -20,16 +22,16 @@ export function getRelationshipsForConceptIds(conceptIds: string[]): Relationshi
   if (conceptIds.length === 0) return [];
   const db = getDatabase();
   const placeholders = conceptIds.map(() => '?').join(',');
-  const stmt = db.prepare(`
+  const sql = `
     SELECT * FROM relationships
     WHERE from_concept_id IN (${placeholders}) OR to_concept_id IN (${placeholders})
-  `);
-  const rows = stmt.all(...conceptIds, ...conceptIds) as any[];
+  `;
+  const rows = db.prepare(sql).all(...conceptIds, ...conceptIds) as any[];
 
-  return rows.map(row => ({
-    id: row.id,
-    fromConceptId: row.from_concept_id,
-    toConceptId: row.to_concept_id,
-    type: row.type,
+  return rows.map(r => ({
+    id: r.id,
+    fromConceptId: r.from_concept_id,
+    toConceptId: r.to_concept_id,
+    type: r.type,
   }));
 }

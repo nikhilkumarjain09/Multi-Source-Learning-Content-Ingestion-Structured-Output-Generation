@@ -1,7 +1,5 @@
-import { LLMProvider } from '../extraction/providers/types';
-import { EXTRACT_CONCEPTS_SYSTEM_PROMPT } from '../extraction/prompts/extractConcepts.prompt';
-import { ExtractionResult } from '../shared/types';
-import { parseAndValidateJson } from './schema';
+import { LLMProvider } from '../extraction/providers';
+import { ExtractionResult, parseAndValidateJson } from './schema';
 
 export class ExtractionValidationError extends Error {
   public readonly initialOutput: string;
@@ -25,72 +23,60 @@ export class ExtractionValidationError extends Error {
   }
 }
 
-export function buildRepairPrompt(originalPrompt: string, invalidOutput: string, validationError: string): string {
-  return `Your previous JSON output failed validation.
+/**
+ * Builds a repair prompt when initial LLM response fails Zod schema validation.
+ */
+function buildRepairPrompt(originalPrompt: string, rawOutput: string, errorMessage: string): string {
+  return `Your previous JSON response contained formatting or schema validation errors.
 
-Original Task Prompt:
+ValidationError Details:
+${errorMessage}
+
+Previous Raw Output:
+${rawOutput}
+
+Original Instruction:
 ${originalPrompt}
 
-Your Previous Invalid Output:
-${invalidOutput}
-
-Validation Errors Encountered:
-${validationError}
-
-CORRECTION INSTRUCTIONS:
-- Fix the JSON structure so it strictly conforms to the expected schema.
-- Return ONLY valid raw JSON object matching {"concepts": [...], "relationships": [...], "summary": "..."}.
-- Do NOT include markdown blocks (\`\`\`json) or any preamble text outside the JSON object.`;
+Please fix the error and output valid JSON ONLY adhering strictly to the JSON schema.`;
 }
 
 /**
- * Validates raw LLM output against the ExtractionResult Zod schema.
- * On failure, constructs a repair prompt and retries the LLM call exactly once (FR2.3).
- * Throws a typed ExtractionValidationError on second failure.
+ * Validates raw LLM response against Zod ExtractionResult schema.
+ * On failure, executes a single repair retry prompt.
+ * On second failure, throws a typed ExtractionValidationError.
  */
 export async function validateAndRepairExtraction(
-  rawOutput: string,
-  userPrompt: string,
+  prompt: string,
+  systemPrompt: string,
   provider: LLMProvider
 ): Promise<ExtractionResult> {
-  // Attempt 1: Validate initial LLM response
-  const attempt1 = parseAndValidateJson(rawOutput);
-  if (attempt1.success) {
-    return attempt1.data;
-  }
+  const attempt1Output = await provider.complete(prompt, systemPrompt);
 
-  const firstError = attempt1.error;
-  console.warn(`Extraction validation attempt 1 failed: ${firstError}. Triggering repair retry...`);
-
-  // Construct repair prompt
-  const repairPrompt = buildRepairPrompt(userPrompt, rawOutput, firstError);
-
-  // Attempt 2: Single repair retry
-  let repairOutput: string;
   try {
-    repairOutput = await provider.complete(repairPrompt, EXTRACT_CONCEPTS_SYSTEM_PROMPT);
-  } catch (err: any) {
-    throw new ExtractionValidationError(
-      `Extraction repair LLM request failed: ${err.message}`,
-      rawOutput,
-      firstError
-    );
+    return parseAndValidateJson(attempt1Output);
+  } catch (attempt1Err: any) {
+    const error1Msg = attempt1Err.message || String(attempt1Err);
+    console.warn(`Extraction validation attempt 1 failed: ${error1Msg}. Triggering repair retry...`);
+
+    const repairPrompt = buildRepairPrompt(prompt, attempt1Output, error1Msg);
+    const attempt2Output = await provider.complete(repairPrompt, systemPrompt);
+
+    try {
+      const repairedResult = parseAndValidateJson(attempt2Output);
+      console.log('Extraction validation repair retry succeeded!');
+      return repairedResult;
+    } catch (attempt2Err: any) {
+      const error2Msg = attempt2Err.message || String(attempt2Err);
+      console.error(`Extraction validation repair attempt 2 failed: ${error2Msg}`);
+
+      throw new ExtractionValidationError(
+        `Failed concept extraction after 1 repair retry. Initial error: "${error1Msg}". Repair error: "${error2Msg}".`,
+        attempt1Output,
+        error1Msg,
+        attempt2Output,
+        error2Msg
+      );
+    }
   }
-
-  const attempt2 = parseAndValidateJson(repairOutput);
-  if (attempt2.success) {
-    console.log('Extraction validation repair retry succeeded!');
-    return attempt2.data;
-  }
-
-  const secondError = attempt2.error;
-  console.error(`Extraction validation repair attempt 2 failed: ${secondError}`);
-
-  throw new ExtractionValidationError(
-    `Failed concept extraction after 1 repair retry. Initial error: "${firstError}". Repair error: "${secondError}".`,
-    rawOutput,
-    firstError,
-    repairOutput,
-    secondError
-  );
 }

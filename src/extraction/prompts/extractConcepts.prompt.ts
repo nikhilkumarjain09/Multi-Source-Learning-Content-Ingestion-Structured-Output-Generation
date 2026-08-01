@@ -1,18 +1,17 @@
-export const EXTRACT_CONCEPTS_SYSTEM_PROMPT = `
-You are an expert educational content analyzer and knowledge graph generator.
-Your job is to analyze the provided text and extract:
-1. Key learning concepts (name and concise description).
-2. Directed relationships between extracted concepts.
-3. A concise, comprehensive summary of the document.
+import { ExtractionResult } from '../../validation/schema';
 
-CRITICAL INSTRUCTIONS:
-- You MUST respond with ONLY a valid JSON object. Do not include markdown codeblock formatting (e.g. do NOT use \`\`\`json), explanations, or preambles.
-- The JSON object must strictly match the following structure:
+export function buildExtractionPrompt(text: string): { prompt: string; systemPrompt: string } {
+  const systemPrompt = `You are an expert educational content analyzer. Your task is to analyze the provided educational text and extract key concepts, relationships between concepts, and a concise summary.
+
+Output format requirement:
+You MUST respond with valid JSON ONLY. Do NOT include any intro text, markdown formatting blocks (like \`\`\`json), or trailing explanations outside the JSON body.
+
+Strict JSON Schema:
 {
   "concepts": [
     {
-      "name": "Concept Name",
-      "description": "Clear description of the concept."
+      "name": "Concept Name (short, title-cased)",
+      "description": "Clear 1-2 sentence educational definition of the concept."
     }
   ],
   "relationships": [
@@ -22,15 +21,46 @@ CRITICAL INSTRUCTIONS:
       "type": "prerequisite" | "related-to" | "part-of"
     }
   ],
-  "summary": "Concise summary of the source content."
+  "summary": "Concise 2-4 sentence summary of the entire document content."
 }
 
-RELATIONSHIP TYPE DEFINITIONS:
-- "prerequisite": Concept A must be understood before Concept B can be learned.
-- "related-to": Concept A and Concept B share a common domain or context.
-- "part-of": Concept A is a sub-component or sub-topic of Concept B.
-`;
+Rules:
+1. "type" MUST be exactly one of: "prerequisite", "related-to", or "part-of".
+2. "from" and "to" concept names MUST exactly match names present in the "concepts" array.
+3. Keep descriptions factual, clear, and educational.`;
 
-export function buildExtractConceptsPrompt(text: string): string {
-  return `Analyze the following learning text and extract all concepts, relationships, and summary as JSON:\n\n${text}`;
+  const prompt = `Please extract concepts, relationships, and summary from the following text:\n\n${text}`;
+
+  return { prompt, systemPrompt };
+}
+
+export function buildReconcileChunksPrompt(chunkResults: ExtractionResult[]): { prompt: string; systemPrompt: string } {
+  const systemPrompt = `You are an expert knowledge graph consolidator. You will be provided with concept extractions from multiple chunks of a single long educational document.
+
+Your task is to reconcile synonymous or duplicate concepts across chunk boundaries, merge their descriptions into clean comprehensive definitions, merge directed relationships without duplicates, and produce a unified summary.
+
+Output format requirement:
+You MUST respond with valid JSON ONLY. Do NOT include any markdown formatting or commentary outside the JSON body.
+
+Strict JSON Schema:
+{
+  "concepts": [
+    {
+      "name": "Canonical Concept Name",
+      "description": "Comprehensive merged educational definition."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Canonical Concept Name A",
+      "to": "Canonical Concept Name B",
+      "type": "prerequisite" | "related-to" | "part-of"
+    }
+  ],
+  "summary": "Unified 2-4 sentence summary of the full multi-chunk document."
+}`;
+
+  const prompt = `Please reconcile and consolidate the following preliminary extractions from multiple chunks:\n\n${JSON.stringify(chunkResults, null, 2)}`;
+
+  return { prompt, systemPrompt };
 }
