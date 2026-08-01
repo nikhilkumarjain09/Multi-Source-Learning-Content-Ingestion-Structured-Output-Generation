@@ -47,28 +47,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const sections = [
     {
-      group: 'WORKSPACE',
+      group: 'MY WORKSPACE',
       items: [
         { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'documents' as NavTab, label: 'Documents', icon: FileText, badge: documentCount },
-        { id: 'queue' as NavTab, label: 'Processing Queue', icon: Clock },
+        { id: 'documents' as NavTab, label: 'Learning Library', icon: FileText, badge: documentCount },
+        { id: 'queue' as NavTab, label: 'Activity Log', icon: Clock },
       ],
     },
     {
-      group: 'KNOWLEDGE & AI',
+      group: 'KNOWLEDGE & INTELLIGENCE',
       items: [
-        { id: 'graph' as NavTab, label: 'Knowledge Graph', icon: Network },
-        { id: 'concepts' as NavTab, label: 'Concepts Index', icon: Layers, badge: conceptCount },
-        { id: 'flashcards' as NavTab, label: 'Flashcard Decks', icon: BookOpen },
+        { id: 'graph' as NavTab, label: 'Knowledge Map', icon: Network },
+        { id: 'concepts' as NavTab, label: 'Topic Library', icon: Layers, badge: conceptCount },
+        { id: 'flashcards' as NavTab, label: 'Study Decks', icon: BookOpen },
         { id: 'learning-paths' as NavTab, label: 'Learning Paths', icon: Route },
-        { id: 'summaries' as NavTab, label: 'Summary Engine', icon: FileCode2 },
+        { id: 'summaries' as NavTab, label: 'Executive Summaries', icon: FileCode2 },
         { id: 'ai-insights' as NavTab, label: 'AI Insights', icon: Sparkles, highlight: true },
       ],
     },
     {
-      group: 'DISCOVERY & SYSTEM',
+      group: 'ANALYTICS & SYSTEM',
       items: [
-        { id: 'topics' as NavTab, label: 'Topic Matrix', icon: Grid },
+        { id: 'topics' as NavTab, label: 'Topic Index', icon: Grid },
         { id: 'analytics' as NavTab, label: 'Analytics', icon: BarChart3 },
         { id: 'exports' as NavTab, label: 'Exports Hub', icon: Download },
         { id: 'settings' as NavTab, label: 'Settings', icon: Settings },
@@ -102,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div>
           <BrandName fontSize="15px" showBadge />
           <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
-            AI Learning Workspace
+            AI Learning Platform
           </div>
         </div>
       </div>
@@ -214,7 +214,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             boxShadow: '0 0 8px var(--success)',
           }} />
           <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 500 }}>
-            MongoDB Online
+            System Operational
           </span>
         </div>
 

@@ -11,12 +11,12 @@ export const ProcessingQueueView: React.FC<ProcessingQueueViewProps> = ({
   activeFilename = null,
 }) => {
   const pipelineStages = [
-    { name: 'File Ingestion & Parsing', desc: 'Identifies file format via registry, extracts raw text streams', icon: Cpu, status: 'completed' },
-    { name: 'Document Normalization', desc: 'Standardizes into canonical SourceDocument format, checks script i18n', icon: CheckCircle2, status: 'completed' },
-    { name: 'LLM Concept Extraction', desc: 'Tokens chunking, provider invocation (Groq/NVIDIA), concept extraction', icon: Network, status: isProcessing ? 'active' : 'completed' },
-    { name: 'Zod Schema Validation', desc: 'Validates JSON against schema, triggers repair retry on malformed output', icon: CheckCircle2, status: isProcessing ? 'pending' : 'completed' },
-    { name: 'Database Persistence', desc: 'Saves entities to MongoDB, resolves cross-document canonical deduplication', icon: Database, status: isProcessing ? 'pending' : 'completed' },
-    { name: 'Vector Embedding Generation', desc: 'Computes 128-dim TF-IDF n-gram vectors for nearest-neighbor similarity search', icon: Cpu, status: isProcessing ? 'pending' : 'completed' },
+    { name: 'Content Preparation', desc: 'Identifies file format and extracts clear text content', icon: Cpu, status: 'completed' },
+    { name: 'Document Formatting', desc: 'Standardizes layout and prepares document structure', icon: CheckCircle2, status: 'completed' },
+    { name: 'AI Knowledge Analysis', desc: 'Identifies key topics, definitions, and connections', icon: Network, status: isProcessing ? 'active' : 'completed' },
+    { name: 'Quality Verification', desc: 'Verifies structured output clarity and accuracy', icon: CheckCircle2, status: isProcessing ? 'pending' : 'completed' },
+    { name: 'Secure Knowledge Indexing', desc: 'Saves topics and links related learning materials', icon: Database, status: isProcessing ? 'pending' : 'completed' },
+    { name: 'Semantic Search Indexing', desc: 'Indexes content to enable fast, intelligent search', icon: Cpu, status: isProcessing ? 'pending' : 'completed' },
   ];
 
   return (
@@ -25,16 +25,16 @@ export const ProcessingQueueView: React.FC<ProcessingQueueViewProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Real-Time Processing Pipeline Queue
+            Activity & Analysis Log
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
-            Live status of ingestion stages, LLM provider requests, schema validation retries, and MongoDB vector indexing.
+            Live status of content preparation, AI knowledge analysis, quality checks, and search indexing.
           </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className={`badge ${isProcessing ? 'badge-blue' : 'badge-green'}`}>
-            {isProcessing ? 'Processing Active' : 'Pipeline Idle / Ready'}
+            {isProcessing ? 'Analysis Active' : 'System Ready'}
           </span>
         </div>
       </div>
@@ -56,7 +56,7 @@ export const ProcessingQueueView: React.FC<ProcessingQueueViewProps> = ({
               Currently Processing: {activeFilename}
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Executing LLM prompt extraction and cross-chunk concept reconciliation...
+              Analyzing content structure, mapping topics, and building learning connections...
             </p>
           </div>
         </div>
@@ -70,7 +70,7 @@ export const ProcessingQueueView: React.FC<ProcessingQueueViewProps> = ({
         padding: '1.5rem',
       }}>
         <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
-          Pipeline Stage Progression
+          Analysis Progress
         </h3>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

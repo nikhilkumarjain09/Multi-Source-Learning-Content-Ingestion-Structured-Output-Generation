@@ -83,7 +83,7 @@ export const UploadControl: React.FC<UploadControlProps> = ({ onIngestSuccess })
           }}
         >
           <FileText size={16} color="var(--accent)" />
-          {selectedFile ? selectedFile.name : 'Select PDF or Transcript File'}
+          {selectedFile ? selectedFile.name : 'Select Learning Material (PDF, TXT)'}
         </button>
 
         <button
@@ -103,12 +103,12 @@ export const UploadControl: React.FC<UploadControlProps> = ({ onIngestSuccess })
           {loading ? (
             <>
               <Loader2 size={16} className="spinner" />
-              Ingesting & Extracting Concepts...
+              Analyzing Content & Building Knowledge Map...
             </>
           ) : (
             <>
               <Upload size={16} />
-              Run Ingestion Pipeline
+              Start Analysis
             </>
           )}
         </button>

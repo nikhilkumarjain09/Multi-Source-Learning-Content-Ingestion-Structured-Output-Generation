@@ -27,10 +27,10 @@ export const LearningPathsView: React.FC<LearningPathsViewProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Topological Learning Paths Studio
+            Learning Paths & Sequence Roadmaps
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
-            Sequenced concept progression calculated via Kahn's algorithm over prerequisite relationship edges.
+            Ordered topic progression based on prerequisite knowledge requirements.
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export const LearningPathsView: React.FC<LearningPathsViewProps> = ({
             No Learning Path Available for Current Selection
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
-            Ingest a document or select a topic from the Topic Matrix to calculate topological prerequisite sequences.
+            Upload learning material or select a topic to build a custom step-by-step learning roadmap.
           </p>
         </div>
       )}

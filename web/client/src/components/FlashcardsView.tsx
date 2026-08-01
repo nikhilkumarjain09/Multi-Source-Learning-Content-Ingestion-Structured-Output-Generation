@@ -86,10 +86,10 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Flashcard Study Decks ({filtered.length})
+            Study Decks & Revision Cards ({filtered.length})
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
-            Interactive question & answer study cards generated automatically from LLM concept extraction.
+            Interactive question & answer study cards generated automatically from AI content analysis.
           </p>
         </div>
 

@@ -350,7 +350,7 @@ const WorkspaceApp: React.FC = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: '1.5rem', maxWidth: '560px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Ingest Learning Document
+                Import Learning Material
               </h3>
               <button onClick={() => setIsUploadModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
                 <X size={18} />

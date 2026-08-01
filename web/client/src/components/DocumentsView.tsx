@@ -48,16 +48,16 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       }}>
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Document Workspace ({documents.length})
+            Learning Library ({documents.length})
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
-            Manage, filter, and inspect ingested learning files across PDF, Text, and Video/Audio transcript sources.
+            Manage, search, and inspect uploaded learning materials across PDF documents and text transcripts.
           </p>
         </div>
 
         <button className="btn-primary" onClick={onOpenUpload}>
           <UploadCloud size={16} />
-          <span>Upload Document</span>
+          <span>Upload Material</span>
         </button>
       </div>
 

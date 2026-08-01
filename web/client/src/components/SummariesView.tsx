@@ -47,10 +47,10 @@ export const SummariesView: React.FC<SummariesViewProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Multi-Format Summary Engine
+            Executive Summaries
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
-            Transform raw ingestion text into Executive, Beginner, Bullet Point, or Detailed Technical Syntheses.
+            View auto-generated executive summaries, beginner breakdowns, key bullet points, and detailed overviews.
           </p>
         </div>
 

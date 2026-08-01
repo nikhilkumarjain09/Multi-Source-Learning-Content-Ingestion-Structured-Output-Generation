@@ -39,9 +39,9 @@ function generateParticles(count: number): Particle[] {
 const PARTICLES = generateParticles(90);
 
 const FEATURES = [
-  { icon: <Brain size={16} />, label: 'AI Knowledge Extraction' },
-  { icon: <BookOpen size={16} />, label: 'Smart Flashcards' },
-  { icon: <Zap size={16} />, label: 'Auto Learning Paths' },
+  { icon: <Brain size={16} />, label: 'Knowledge Analysis' },
+  { icon: <BookOpen size={16} />, label: 'Study Decks' },
+  { icon: <Zap size={16} />, label: 'Custom Learning Paths' },
 ];
 
 const CONFETTI_CSS = `

@@ -195,7 +195,7 @@ export const ConceptGraph: React.FC<ConceptGraphProps> = ({ nodes, edges, flashc
         gap: '0.5rem',
       }}>
         <Network size={16} color="var(--accent)" />
-        Concept Knowledge Graph ({nodes.length} nodes, {edges.length} relationships)
+        Interactive Knowledge Map ({nodes.length} topics, {edges.length} connections)
       </h3>
 
       {/* Zoom controls */}

@@ -39,10 +39,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const statCards = [
-    { label: 'Ingested Documents', value: metrics.totalDocuments, icon: FileText, color: 'var(--accent)', tab: 'documents' as NavTab },
-    { label: 'Extracted Concepts', value: metrics.totalConcepts, icon: Layers, color: 'var(--success)', tab: 'concepts' as NavTab },
-    { label: 'Knowledge Graph Edges', value: metrics.totalRelationships, icon: Network, color: 'var(--purple-accent)', tab: 'graph' as NavTab },
-    { label: 'Study Flashcards', value: metrics.totalFlashcards, icon: BookOpen, color: 'var(--warning)', tab: 'flashcards' as NavTab },
+    { label: 'Learning Materials', value: metrics.totalDocuments, icon: FileText, color: 'var(--accent)', tab: 'documents' as NavTab },
+    { label: 'Knowledge Topics', value: metrics.totalConcepts, icon: Layers, color: 'var(--success)', tab: 'concepts' as NavTab },
+    { label: 'Topic Connections', value: metrics.totalRelationships, icon: Network, color: 'var(--purple-accent)', tab: 'graph' as NavTab },
+    { label: 'Study Cards', value: metrics.totalFlashcards, icon: BookOpen, color: 'var(--warning)', tab: 'flashcards' as NavTab },
   ];
 
   return (
@@ -61,17 +61,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
             <Sparkles size={20} color="var(--accent)" />
             <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              {BRANDING.APP_NAME} Learning Workspace Overview
+              {BRANDING.APP_NAME} Workspace
             </h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '600px' }}>
-            Multi-source ingestion pipeline active. Ingest PDFs, text transcripts, or video/audio captions to extract concepts, generate topological learning roadmaps, and explore knowledge graphs.
+            Your AI Learning Workspace is active. Upload documents, transcripts, or notes to automatically generate interactive knowledge maps, study decks, and custom learning paths.
           </p>
         </div>
 
         <button className="btn-primary" onClick={onOpenUpload}>
           <UploadCloud size={18} />
-          <span>Upload Document</span>
+          <span>Upload Material</span>
         </button>
       </div>
 
@@ -141,7 +141,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Recent Ingested Workspace Files
+              Recent Learning Materials
             </h3>
             <button
               onClick={() => onNavigateTab('documents')}
@@ -160,12 +160,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               border: '1px dashed var(--border-color)',
             }}>
               <UploadCloud size={32} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
-              <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>No learning documents yet.</p>
+              <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>No learning materials yet.</p>
               <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '1rem' }}>
-                Upload your first document to let {BRANDING.APP_NAME} generate summaries, flashcards, and knowledge graphs.
+                Upload your first document or transcript to let {BRANDING.APP_NAME} generate summaries, study cards, and knowledge maps.
               </p>
               <button className="btn-secondary" onClick={onOpenUpload}>
-                Ingest Seed File
+                Upload Material
               </button>
             </div>
           ) : (
@@ -202,14 +202,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         {doc.filename}
                       </h4>
                       <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {doc.wordCount || 0} words • Ingested {new Date(doc.ingestedAt).toLocaleDateString()}
+                        {doc.wordCount || 0} words • Added {new Date(doc.ingestedAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span className="badge badge-green">
-                      <CheckCircle2 size={10} /> Parsed
+                      <CheckCircle2 size={10} /> Processed
                     </span>
                     <span className="badge badge-blue">{doc.sourceType}</span>
                   </div>
@@ -228,12 +228,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             padding: '1.25rem',
           }}>
             <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.85rem' }}>
-              Extracted Knowledge Topics
+              Featured Knowledge Topics
             </h3>
 
             {concepts.length === 0 ? (
               <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Concepts will populate automatically upon document ingestion.
+                Knowledge topics will populate automatically as you add content.
               </p>
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
@@ -279,7 +279,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <Clock size={16} color="var(--purple-accent)" />
               <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Quick Action Tasks
+                Quick Actions
               </h4>
             </div>
 
@@ -289,14 +289,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 style={{ width: '100%', justifyContent: 'flex-start' }}
                 onClick={() => onNavigateTab('flashcards')}
               >
-                <BookOpen size={14} color="var(--warning)" /> Launch Study Mode Flashcards
+                <BookOpen size={14} color="var(--warning)" /> Open Study Decks
               </button>
               <button
                 className="btn-secondary"
                 style={{ width: '100%', justifyContent: 'flex-start' }}
                 onClick={() => onNavigateTab('learning-paths')}
               >
-                <ArrowRight size={14} color="var(--success)" /> View Topological Roadmap
+                <ArrowRight size={14} color="var(--success)" /> View Learning Path Roadmap
               </button>
             </div>
           </div>

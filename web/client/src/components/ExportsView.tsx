@@ -52,7 +52,7 @@ export const ExportsView: React.FC<ExportsViewProps> = ({
           Exports Hub
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
-          One-click exports for flashcard decks (JSON/CSV), canonical concepts catalog, summary markdown, and concept graphs.
+          Download study decks, topic indexes, executive summaries, and knowledge maps in standard formats.
         </p>
       </div>
 
@@ -61,17 +61,17 @@ export const ExportsView: React.FC<ExportsViewProps> = ({
         <div style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1.5rem' }}>
           <BookOpen size={24} color="var(--warning)" style={{ marginBottom: '0.75rem' }} />
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-            Flashcards Deck Export
+            Study Decks Export
           </h3>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-            Export question & answer flashcard pairs in standard JSON or CSV formats.
+            Export question & answer study cards for offline study or spreadsheet integration.
           </p>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button className="btn-primary" onClick={handleExportFlashcardsJSON}>
-              <Download size={14} /> JSON ({flashcards.length})
+              <Download size={14} /> Data Export ({flashcards.length})
             </button>
             <button className="btn-secondary" onClick={handleExportFlashcardsCSV}>
-              <Download size={14} /> CSV
+              <Download size={14} /> Spreadsheet Export
             </button>
           </div>
         </div>
@@ -79,26 +79,26 @@ export const ExportsView: React.FC<ExportsViewProps> = ({
         <div style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1.5rem' }}>
           <FileCode2 size={24} color="var(--accent)" style={{ marginBottom: '0.75rem' }} />
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-            Summary Markdown Export
+            Executive Summary Export
           </h3>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-            Download executive & technical summaries formatted in clean markdown.
+            Download executive and detailed content summaries formatted in clean document text.
           </p>
           <button className="btn-primary" onClick={handleExportSummaryMarkdown}>
-            <Download size={14} /> Markdown (.md)
+            <Download size={14} /> Document Text (.md)
           </button>
         </div>
 
         <div style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1.5rem' }}>
           <Network size={24} color="var(--purple-accent)" style={{ marginBottom: '0.75rem' }} />
           <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-            Concepts & Graph JSON Export
+            Topic Library & Knowledge Map Export
           </h3>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-            Download complete canonical concepts registry and graph topology in JSON schema format.
+            Download topic connections and knowledge map structure for external data analysis.
           </p>
           <button className="btn-primary" onClick={handleExportConceptsJSON}>
-            <Download size={14} /> Concepts JSON ({concepts.length})
+            <Download size={14} /> Topic Data ({concepts.length})
           </button>
         </div>
       </div>

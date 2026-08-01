@@ -41,14 +41,14 @@ export const AIInsightsView: React.FC<AIInsightsViewProps> = ({
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Sparkles size={20} color="var(--purple-accent)" />
-            AI Knowledge Insights & Topology Gap Analysis
+            AI Knowledge Insights & Learning Recommendations
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
-            Automated graph density scoring, Hub concept identification, and prerequisite vulnerability analysis.
+            Automated topic connectivity analysis, core learning anchors, and recommended study sequences.
           </p>
         </div>
 
-        <span className="badge badge-purple">Graph Density Score: {insights?.graphDensityScore || '1.25'}</span>
+        <span className="badge badge-purple">Topic Connectivity Index: {insights?.graphDensityScore || '1.25'}</span>
       </div>
 
       {/* Top Connected Hub Concepts */}
@@ -60,7 +60,7 @@ export const AIInsightsView: React.FC<AIInsightsViewProps> = ({
       }}>
         <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <BrainCircuit size={18} color="var(--accent)" />
-          Top Connected Hub Concepts (Key Architectural Anchors)
+          Core Knowledge Anchors (Highly Connected Topics)
         </h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>

@@ -88,7 +88,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <Search size={20} color="var(--accent)" />
           <input
             type="text"
-            placeholder="Search documents, concepts, topics, flashcards... (Esc to close)"
+            placeholder="Search learning materials, topics, study cards... (Esc to close)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus

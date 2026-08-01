@@ -4,7 +4,7 @@
   <img src="assets/synthlearn.png" alt="SynthLearn Logo" width="120" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(37,99,235,0.25);" />
 </p>
 
-**SynthLearn** is an AI-powered platform for ingesting educational content from multiple sources (PDFs, plain-text transcripts, VTT subtitle tracks, and video/audio transcripts), normalizing input text, extracting key learning concepts and directed relationships via LLM provider abstraction, and generating structured learning experiences including summaries, flashcards, concept graphs, and topological learning paths backed by MongoDB storage, JWT authentication, and vector embedding retrieval.
+**SynthLearn** is an enterprise-grade AI Learning Intelligence Platform that transforms educational materials (PDF documents, text transcripts, and media notes) into structured, interactive learning experiences. It automatically extracts key knowledge topics, builds interactive topic connections, generates executive summaries, creates study decks, and constructs custom learning path roadmaps — powered by multi-provider AI intelligence, enterprise security, and cloud storage.
 
 ---
 

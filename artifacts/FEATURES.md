@@ -50,12 +50,19 @@ stretch feature so the MVP state is always recoverable.
 
 ---
 
-## How to Use This File Mid-Build
+---
 
-If time remains after MVP is fully working and demo-tested:
-1. Re-read REQUIREMENTS.md and this file.
-2. Pick the next stretch feature in priority order (S1 → S7).
-3. Use the corresponding stretch prompt from PROMPTS_STRETCH.md — do not
-   improvise scope beyond what that prompt specifies.
-4. Confirm the MVP demo path still works after the addition before moving
-   to the next stretch feature.
+## Product Terminology & User-Facing Feature Names
+
+| Developer Term | Product & UX Term | User Description |
+|----------------|-------------------|------------------|
+| Ingestion Pipeline | Learning Engine / Content Analysis | Process of analyzing documents and extracting knowledge |
+| SourceDocument | Learning Material | Uploaded PDF or text document in the library |
+| Concept Extraction | Knowledge Analysis | Identifying key learning topics and definitions |
+| Concept Graph | Knowledge Map | Interactive visual map of connected learning topics |
+| Relationships | Topic Connections | Prerequisites, related topics, and sub-concepts |
+| Flashcards | Study Decks / Revision Cards | Interactive question & answer review cards |
+| Summary Engine | Executive Summaries | Auto-generated executive and beginner summaries |
+| Topological Path | Learning Path Roadmap | Sequenced step-by-step topic study guide |
+| Vector Search | Semantic Search | Intelligent topic search across the knowledge base |
+

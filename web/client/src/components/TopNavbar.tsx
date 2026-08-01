@@ -24,15 +24,15 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   const getTabLabel = (tab: NavTab) => {
     switch (tab) {
       case 'dashboard': return 'Dashboard Overview';
-      case 'documents': return 'Document Workspace';
-      case 'queue': return 'Real-Time Processing Queue';
-      case 'graph': return 'Knowledge Graph Explorer';
-      case 'concepts': return 'Concepts Index';
-      case 'flashcards': return 'Flashcard Decks & Study Mode';
-      case 'learning-paths': return 'Topological Learning Paths';
-      case 'summaries': return 'Multi-Format Summary Engine';
+      case 'documents': return 'Learning Library';
+      case 'queue': return 'Activity Log';
+      case 'graph': return 'Knowledge Map';
+      case 'concepts': return 'Topic Library';
+      case 'flashcards': return 'Study Decks & Revision Cards';
+      case 'learning-paths': return 'Learning Paths & Sequence Roadmaps';
+      case 'summaries': return 'Executive Summary Engine';
       case 'ai-insights': return 'AI Knowledge Insights';
-      case 'topics': return 'Topic Matrix';
+      case 'topics': return 'Topic Index';
       case 'analytics': return 'Platform Analytics';
       case 'exports': return 'Exports Hub';
       case 'settings': return 'System Settings';
@@ -93,7 +93,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-color)')}
         >
           <Search size={15} color="var(--text-muted)" />
-          <span style={{ flex: 1, textAlign: 'left' }}>Global Search...</span>
+          <span style={{ flex: 1, textAlign: 'left' }}>Search knowledge base...</span>
           <span style={{
             fontSize: '10px',
             backgroundColor: 'var(--bg-surface)',
@@ -111,7 +111,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         {/* Upload Document Button */}
         <button className="btn-primary" onClick={onOpenUploadModal}>
           <Plus size={16} />
-          <span>Ingest Document</span>
+          <span>Import Content</span>
         </button>
 
         {/* Notifications */}
