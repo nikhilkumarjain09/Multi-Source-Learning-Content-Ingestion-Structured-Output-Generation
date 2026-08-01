@@ -123,7 +123,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
               if (emailError) validateEmail(val);
             }}
             onBlur={() => validateEmail(email)}
-            placeholder="name@company.com"
+            placeholder="nikhil@synthlearn.ai"
             icon={<Mail size={15} />}
             error={emailError}
             isValid={!!email && !emailError}

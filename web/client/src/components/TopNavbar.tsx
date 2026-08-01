@@ -40,8 +40,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
     }
   };
 
-  const initial = user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'AI';
-  const displayName = user?.fullName || 'Senior Engineer';
+  const initial = user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'N';
+  const displayName = user?.fullName || 'Nikhil Jain';
 
   return (
     <header style={{

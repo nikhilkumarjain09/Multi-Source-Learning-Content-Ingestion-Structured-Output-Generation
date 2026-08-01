@@ -110,7 +110,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               if (emailError) validateEmail(val);
             }}
             onBlur={() => validateEmail(email)}
-            placeholder="name@company.com"
+            placeholder="nikhil@synthlearn.ai"
             icon={<Mail size={15} />}
             error={emailError}
             isValid={!!email && !emailError}

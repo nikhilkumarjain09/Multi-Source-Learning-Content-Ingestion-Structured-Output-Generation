@@ -167,7 +167,7 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin, embed
               if (nameError) validateName(val);
             }}
             onBlur={() => validateName(fullName)}
-            placeholder="Jane Doe"
+            placeholder="Nikhil Jain"
             icon={<User size={14} />}
             error={nameError}
             isValid={!!fullName.trim() && !nameError}
@@ -184,7 +184,7 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin, embed
               if (emailError) validateEmail(val);
             }}
             onBlur={() => validateEmail(email)}
-            placeholder="name@company.com"
+            placeholder="nikhil@synthlearn.ai"
             icon={<Mail size={14} />}
             error={emailError}
             isValid={!!email && !emailError}
