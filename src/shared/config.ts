@@ -21,7 +21,7 @@ export const CONFIG = {
   SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
   SMTP_USER: process.env.SMTP_USER || '',
   SMTP_PASSWORD: process.env.SMTP_PASSWORD || '',
-  SMTP_FROM: process.env.SMTP_FROM || 'CognitiveAI <noreply@cognitiveai.learning>',
+  SMTP_FROM: process.env.SMTP_FROM || 'SynthLearn <noreply@synthlearn.com>',
   CHUNK: {
     MAX_TOKENS: 3000,
     MAX_CHARACTERS: 12000,
