@@ -47,15 +47,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static frontend bundle if available
-const distClientDir = path.resolve(__dirname, '../client/dist');
-if (fs.existsSync(distClientDir)) {
-  app.use(express.static(distClientDir));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(distClientDir, 'index.html'));
-  });
-}
+
 
 // ==========================================
 // AUTHENTICATION & USER MANAGEMENT ENDPOINTS
@@ -799,6 +791,16 @@ app.get('/api/search', async (req, res) => {
     res.status(500).json({ error: error.message || 'Failed to execute global search.' });
   }
 });
+
+// Serve static frontend bundle if available (Must be placed AFTER all /api routes)
+const distClientDir = path.resolve(__dirname, '../client/dist');
+if (fs.existsSync(distClientDir)) {
+  app.use(express.static(distClientDir));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distClientDir, 'index.html'));
+  });
+}
 
 if (require.main === module) {
   connectDB().then(() => {
