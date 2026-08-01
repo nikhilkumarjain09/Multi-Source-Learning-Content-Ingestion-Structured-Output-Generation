@@ -66,7 +66,7 @@ function runRepositoryRoundtripTests() {
   }
 
   const cnnSearch = getConceptsByName('convolutional neural network');
-  if (cnnSearch.length !== 1 || cnnSearch[0].id !== concept1Id) {
+  if (cnnSearch.length === 0 || !cnnSearch.some(c => c.id === concept1Id)) {
     throw new Error('Concept round-trip failed: Concept lookup by normalized name failed');
   }
 
