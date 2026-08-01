@@ -46,7 +46,7 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
     if (!result.success) {
       setError(result.error || 'Failed to create account.');
     } else {
-      setSuccessMsg(result.message || 'Account created successfully! Please check your email.');
+      setSuccessMsg(result.message || 'Account created successfully! Please check your email inbox (and check your Spam/Junk folder if you don\'t see it).');
     }
   };
 

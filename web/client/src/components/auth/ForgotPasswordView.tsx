@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Brain, Mail, ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Mail, ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { BrandHeader } from '../branding/BrandHeader';
+import { BRANDING } from '../../config/branding';
 
 interface ForgotPasswordViewProps {
   onNavigateToLogin: () => void;
@@ -32,11 +34,11 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
       setLoading(false);
 
       if (res.ok) {
-        setMessage(data.message || 'If an account exists, a password reset link has been sent.');
+        setMessage(data.message || 'If an account exists, a password reset link has been sent. Please check your inbox and Spam/Junk folder.');
       } else {
         setError(data.error || 'Failed to send password reset email.');
       }
-    } catch (err: any) {
+    } catch {
       setLoading(false);
       setError('Network error. Please try again.');
     }
@@ -60,26 +62,8 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
         padding: '2.5rem',
         boxShadow: 'var(--shadow-lg)',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--accent) 0%, var(--purple-accent) 100%)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '0.85rem',
-          }}>
-            <Brain size={24} color="#ffffff" />
-          </div>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-            Reset Password
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Enter your account email to receive a password reset link
-          </p>
-        </div>
+        {/* Brand Header */}
+        <BrandHeader title={`Reset ${BRANDING.APP_NAME} Password`} subtitle="Enter your account email to receive a password reset link" />
 
         {error && (
           <div style={{
@@ -104,16 +88,21 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
             backgroundColor: 'var(--success-glow)',
             border: '1px solid var(--success)',
             borderRadius: 'var(--border-radius-sm)',
-            padding: '0.75rem',
+            padding: '0.85rem',
             fontSize: '13px',
             color: '#16A34A',
             marginBottom: '1.25rem',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             gap: '0.5rem',
           }}>
-            <CheckCircle2 size={16} />
-            <span>{message}</span>
+            <CheckCircle2 size={16} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <div>
+              <div>{message}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Note: Check your Spam or Junk folder if you do not see the email in your main inbox.
+              </div>
+            </div>
           </div>
         )}
 
