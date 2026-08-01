@@ -3,6 +3,7 @@ import { BRANDING } from './config/branding';
 import { BrandLoading } from './components/branding/BrandLoading';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { AuthLayout } from './components/auth/AuthLayout';
+import { UnifiedAuthContainer } from './components/auth/UnifiedAuthContainer';
 import { LoginView } from './components/auth/LoginView';
 import { SignupView } from './components/auth/SignupView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
@@ -179,25 +180,13 @@ const WorkspaceApp: React.FC = () => {
     return <BrandLoading message="Authenticating your SynthLearn learning workspace..." />;
   }
 
-  // Render Authentication Flow for Unauthenticated Guests inside Enterprise AuthLayout
+  // Render Authentication Flow for Unauthenticated Guests inside Enterprise AuthLayout & Unified Container
   if (!isAuthenticated) {
-    let authContent: React.ReactNode = null;
-    if (authPage === 'signup') {
-      authContent = <SignupView onNavigateToLogin={() => setAuthPage('login')} />;
-    } else if (authPage === 'forgot-password') {
-      authContent = <ForgotPasswordView onNavigateToLogin={() => setAuthPage('login')} />;
-    } else if (authPage === 'reset-password') {
-      authContent = <ResetPasswordView token={resetToken} onNavigateToLogin={() => setAuthPage('login')} />;
-    } else {
-      authContent = (
-        <LoginView
-          onNavigateToSignup={() => setAuthPage('signup')}
-          onNavigateToForgotPassword={() => setAuthPage('forgot-password')}
-        />
-      );
-    }
-
-    return <AuthLayout>{authContent}</AuthLayout>;
+    return (
+      <AuthLayout>
+        <UnifiedAuthContainer initialPage={authPage} resetToken={resetToken} />
+      </AuthLayout>
+    );
   }
 
   // Render Authenticated SaaS Application Workspace
