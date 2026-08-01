@@ -21,18 +21,26 @@ function getTransporter() {
   return transporter;
 }
 
-export async function sendVerificationEmail(email: string, token: string): Promise<void> {
-  const verifyUrl = `http://localhost:${CONFIG.PORT}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+export async function sendVerificationEmail(email: string, otpCode: string): Promise<void> {
+  const verifyUrl = `http://localhost:${CONFIG.PORT}/api/auth/verify-email?token=${encodeURIComponent(otpCode)}`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E8EAF2; border-radius: 12px; background-color: #FFFFFF;">
       <h2 style="color: #2563EB; margin-bottom: 8px;">Welcome to ${BRANDING.APP_NAME}</h2>
-      <p style="color: #475569; font-size: 14px;">Thank you for creating an account. Please verify your email address to activate your ${BRANDING.APP_NAME} learning workspace.</p>
-      <p style="margin: 28px 0;">
-        <a href="${verifyUrl}" style="background-color: #2563EB; color: #ffffff; padding: 12px 26px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Verify Email Address</a>
+      <p style="color: #475569; font-size: 14px;">Thank you for creating an account. Below is your 6-digit email verification OTP code:</p>
+      
+      <div style="background-color: #F8FAFC; border: 2px dashed #2563EB; border-radius: 8px; padding: 16px; text-align: center; margin: 20px 0;">
+        <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #2563EB;">${otpCode}</span>
+        <div style="font-size: 12px; color: #64748B; margin-top: 6px;">Your 6-Digit Email Verification OTP Code</div>
+      </div>
+
+      <p style="margin: 20px 0; text-align: center;">
+        <a href="${verifyUrl}" style="background-color: #2563EB; color: #ffffff; padding: 12px 26px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Or Click Here to Verify Instantly</a>
       </p>
-      <p style="font-size: 12px; color: #64748B;">Or copy and paste this link into your browser: <br><a href="${verifyUrl}" style="color: #2563EB;">${verifyUrl}</a></p>
-      <p style="font-size: 12px; color: #94A3B8; margin-top: 30px; border-top: 1px solid #F1F5F9; padding-top: 16px;">This link will expire in 24 hours.</p>
+
+      <p style="font-size: 12px; color: #94A3B8; margin-top: 30px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+        Note: If you don't see this email in your main inbox, please check your <strong>Spam / Junk folder</strong> and mark as "Not Spam".
+      </p>
     </div>
   `;
 
@@ -42,29 +50,37 @@ export async function sendVerificationEmail(email: string, token: string): Promi
       await mailTransporter.sendMail({
         from: CONFIG.SMTP_FROM,
         to: email,
-        subject: `Verify your ${BRANDING.APP_NAME} Account Email`,
+        subject: `Your ${BRANDING.APP_NAME} Verification OTP Code: ${otpCode}`,
         html,
       });
     } catch (err) {
-      console.warn(`SMTP email send failed for ${email}. Email verification URL: ${verifyUrl}`);
+      console.warn(`SMTP email send failed for ${email}. OTP Code: ${otpCode}, Verify URL: ${verifyUrl}`);
     }
   } else {
-    console.log(`[Development Mode] Verification email link for ${email}: ${verifyUrl}`);
+    console.log(`[Development Mode] Verification OTP Code for ${email}: ${otpCode} (Verify URL: ${verifyUrl})`);
   }
 }
 
-export async function sendPasswordResetEmail(email: string, token: string): Promise<void> {
-  const resetUrl = `http://localhost:${CONFIG.PORT}/?token=${encodeURIComponent(token)}#/reset-password`;
+export async function sendPasswordResetEmail(email: string, otpCode: string): Promise<void> {
+  const resetUrl = `http://localhost:${CONFIG.PORT}/?token=${encodeURIComponent(otpCode)}#/reset-password`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E8EAF2; border-radius: 12px; background-color: #FFFFFF;">
       <h2 style="color: #2563EB; margin-bottom: 8px;">Reset Your ${BRANDING.APP_NAME} Password</h2>
-      <p style="color: #475569; font-size: 14px;">We received a request to reset your password. Click the button below to choose a new password.</p>
-      <p style="margin: 28px 0;">
-        <a href="${resetUrl}" style="background-color: #2563EB; color: #ffffff; padding: 12px 26px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
+      <p style="color: #475569; font-size: 14px;">We received a request to reset your password. Use the 6-digit OTP code below or click the direct reset link:</p>
+      
+      <div style="background-color: #F8FAFC; border: 2px dashed #2563EB; border-radius: 8px; padding: 16px; text-align: center; margin: 20px 0;">
+        <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #2563EB;">${otpCode}</span>
+        <div style="font-size: 12px; color: #64748B; margin-top: 6px;">Your 6-Digit Password Reset OTP Code</div>
+      </div>
+
+      <p style="margin: 20px 0; text-align: center;">
+        <a href="${resetUrl}" style="background-color: #2563EB; color: #ffffff; padding: 12px 26px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Click Here to Reset Password</a>
       </p>
-      <p style="font-size: 12px; color: #64748B;">Or copy and paste this link into your browser: <br><a href="${resetUrl}" style="color: #2563EB;">${resetUrl}</a></p>
-      <p style="font-size: 12px; color: #94A3B8; margin-top: 30px; border-top: 1px solid #F1F5F9; padding-top: 16px;">This password reset link will expire in 1 hour.</p>
+
+      <p style="font-size: 12px; color: #94A3B8; margin-top: 30px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+        Note: If you don't see this email in your main inbox, please check your <strong>Spam / Junk folder</strong> and mark as "Not Spam".
+      </p>
     </div>
   `;
 
@@ -74,13 +90,13 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
       await mailTransporter.sendMail({
         from: CONFIG.SMTP_FROM,
         to: email,
-        subject: `Reset your ${BRANDING.APP_NAME} Account Password`,
+        subject: `Your ${BRANDING.APP_NAME} Password Reset OTP Code: ${otpCode}`,
         html,
       });
     } catch (err) {
-      console.warn(`SMTP reset password send failed for ${email}. Reset URL: ${resetUrl}`);
+      console.warn(`SMTP reset password send failed for ${email}. OTP Code: ${otpCode}, Reset URL: ${resetUrl}`);
     }
   } else {
-    console.log(`[Development Mode] Password reset email link for ${email}: ${resetUrl}`);
+    console.log(`[Development Mode] Password Reset OTP Code for ${email}: ${otpCode} (Reset URL: ${resetUrl})`);
   }
 }

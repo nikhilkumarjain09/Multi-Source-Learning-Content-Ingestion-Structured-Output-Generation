@@ -140,53 +140,57 @@ export async function revokeAllUserRefreshTokens(userId: string): Promise<number
   return res.modifiedCount;
 }
 
-// Verification & Reset Tokens
+// Verification & Reset Tokens (Supports both direct URL link & 6-digit OTP code)
 export async function createEmailVerificationToken(userId: string): Promise<string> {
   await connectDB();
   await EmailVerificationTokenModel.deleteMany({ userId });
-  const token = uuidv4();
+  // Generate 6-digit numeric OTP code
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
   await EmailVerificationTokenModel.create({
     userId,
-    token,
+    token: otpCode,
     expiresAt,
   });
 
-  return token;
+  return otpCode;
 }
 
 export async function verifyEmailToken(token: string): Promise<boolean> {
   await connectDB();
-  const found = await EmailVerificationTokenModel.findOne({ token });
+  const cleanToken = token.trim();
+  const found = await EmailVerificationTokenModel.findOne({ token: cleanToken });
   if (!found || found.expiresAt < new Date()) {
     return false;
   }
 
   await UserModel.updateOne({ id: found.userId }, { isEmailVerified: true });
-  await EmailVerificationTokenModel.deleteOne({ token });
+  await EmailVerificationTokenModel.deleteOne({ token: cleanToken });
   return true;
 }
 
 export async function createPasswordResetToken(userId: string): Promise<string> {
   await connectDB();
   await PasswordResetTokenModel.deleteMany({ userId });
-  const token = uuidv4();
+  // Generate 6-digit numeric OTP code
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1h
 
   await PasswordResetTokenModel.create({
     userId,
-    token,
+    token: otpCode,
     expiresAt,
     isUsed: false,
   });
 
-  return token;
+  return otpCode;
 }
 
 export async function resetPasswordWithToken(token: string, newPassword: string): Promise<boolean> {
   await connectDB();
-  const found = await PasswordResetTokenModel.findOne({ token, isUsed: false });
+  const cleanToken = token.trim();
+  const found = await PasswordResetTokenModel.findOne({ token: cleanToken, isUsed: false });
   if (!found || found.expiresAt < new Date()) {
     return false;
   }
