@@ -13,6 +13,24 @@ interface UnifiedAuthContainerProps {
   resetToken?: string;
 }
 
+// Shared panel wrapper — provides padding inside each panel so the sliding
+// track can be flush/zero-padded against the card edges (no bleed-through).
+const Panel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div
+    style={{
+      width: '20%',
+      height: '100%',
+      flexShrink: 0,
+      boxSizing: 'border-box',
+      padding: '1.75rem',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+    }}
+  >
+    {children}
+  </div>
+);
+
 export const UnifiedAuthContainer: React.FC<UnifiedAuthContainerProps> = ({
   initialPage = 'login',
   resetToken = '',
@@ -20,17 +38,17 @@ export const UnifiedAuthContainer: React.FC<UnifiedAuthContainerProps> = ({
   const [activeTab, setActiveTab] = useState<AuthTab>(initialPage);
   const [pendingEmail, setPendingEmail] = useState('');
 
-  // Map activeTab to translateX percentage (5 panels = 20% each)
-  const getTranslateX = () => {
-    switch (activeTab) {
-      case 'signup':         return '-20%';
-      case 'forgot-password': return '-40%';
-      case 'reset-password': return '-60%';
-      case 'verify-email':   return '-80%';
-      case 'login':
-      default:               return '0%';
-    }
+  // translateX is relative to the track element (500% of card width).
+  // Each 20% step = exactly 1 card-width slide.
+  const tabIndex: Record<AuthTab, number> = {
+    'login': 0,
+    'signup': 1,
+    'forgot-password': 2,
+    'reset-password': 3,
+    'verify-email': 4,
   };
+
+  const translateX = `${tabIndex[activeTab] * -20}%`;
 
   const handleSignupSuccess = (email: string) => {
     setPendingEmail(email);
@@ -43,63 +61,65 @@ export const UnifiedAuthContainer: React.FC<UnifiedAuthContainerProps> = ({
   };
 
   return (
-    <AuthCard>
-      {/* Sliding Viewports Track — 5 panels */}
-      <div style={{ overflow: 'hidden', width: '100%', height: '100%', position: 'relative' }}>
+    // noPadding — padding lives inside each Panel wrapper instead
+    <AuthCard noPadding>
+      {/* Clip window — exactly card-sized */}
+      <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
+        {/* Sliding track — 5 panels wide */}
         <div
           style={{
             display: 'flex',
             width: '500%',
             height: '100%',
-            transform: `translateX(${getTranslateX()})`,
+            transform: `translateX(${translateX})`,
             transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
             willChange: 'transform',
           }}
         >
           {/* Panel 1: Login */}
-          <div style={{ width: '20%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+          <Panel>
             <LoginView
               onNavigateToSignup={() => setActiveTab('signup')}
               onNavigateToForgotPassword={() => setActiveTab('forgot-password')}
               embedded
             />
-          </div>
+          </Panel>
 
           {/* Panel 2: Signup */}
-          <div style={{ width: '20%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+          <Panel>
             <SignupView
               onNavigateToLogin={() => setActiveTab('login')}
               onSignupSuccess={handleSignupSuccess}
               embedded
             />
-          </div>
+          </Panel>
 
           {/* Panel 3: Forgot Password */}
-          <div style={{ width: '20%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+          <Panel>
             <ForgotPasswordView
               onNavigateToLogin={() => setActiveTab('login')}
               embedded
             />
-          </div>
+          </Panel>
 
           {/* Panel 4: Reset Password */}
-          <div style={{ width: '20%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+          <Panel>
             <ResetPasswordView
               token={resetToken}
               onNavigateToLogin={() => setActiveTab('login')}
               embedded
             />
-          </div>
+          </Panel>
 
           {/* Panel 5: Email OTP Verification */}
-          <div style={{ width: '20%', height: '100%', flexShrink: 0, boxSizing: 'border-box' }}>
+          <Panel>
             <EmailVerifyView
               email={pendingEmail}
               onVerified={handleVerified}
               onNavigateToLogin={() => setActiveTab('login')}
               embedded
             />
-          </div>
+          </Panel>
         </div>
       </div>
     </AuthCard>
