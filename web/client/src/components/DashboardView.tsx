@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
 import { BRANDING } from '../config/branding';
+import { Skeleton } from './Skeleton';
 
 interface DashboardViewProps {
   analytics: any;
@@ -81,49 +82,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: '1rem',
       }}>
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <div
-              key={card.label}
-              className="card-hover"
-              onClick={() => onNavigateTab(card.tab)}
-              style={{
-                backgroundColor: 'var(--bg-card)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--border-radius-md)',
-                padding: '1.25rem',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                  {card.label}
-                </span>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--bg-base)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <Icon size={18} color={card.color} />
+        {!analytics ? (
+          [1, 2, 3, 4].map((i) => (
+            <div key={i} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-md)', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <Skeleton width="100px" height="14px" />
+                <Skeleton width="32px" height="32px" borderRadius="8px" />
+              </div>
+              <Skeleton width="60px" height="28px" style={{ marginBottom: '0.5rem' }} />
+              <Skeleton width="90px" height="12px" />
+            </div>
+          ))
+        ) : (
+          statCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.label}
+                className="card-hover"
+                onClick={() => onNavigateTab(card.tab)}
+                style={{
+                  backgroundColor: 'var(--bg-card)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--border-radius-md)',
+                  padding: '1.25rem',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                    {card.label}
+                  </span>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--bg-base)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Icon size={18} color={card.color} />
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+                  {card.value}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '11px', color: 'var(--success)' }}>
+                  <TrendingUp size={12} />
+                  <span>Indexed & Ready</span>
                 </div>
               </div>
-
-              <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-                {card.value}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '11px', color: 'var(--success)' }}>
-                <TrendingUp size={12} />
-                <span>Indexed & Ready</span>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
       {/* Grid Layout: Recent Documents & Popular Topics */}

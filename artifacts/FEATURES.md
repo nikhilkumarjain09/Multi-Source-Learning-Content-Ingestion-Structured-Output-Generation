@@ -40,7 +40,7 @@ Ordered by impact-to-effort ratio, highest first:
 | S2 | Cross-document concept deduplication (not just within-document) | Strengthens the "concept graph" story significantly | Medium |
 | S3 | Graph viz polish (zoom/pan, node click-to-expand, edge-type legend) | Visual wow-factor for the live demo | Medium |
 | S4 | Semantic/embedding-based topic retrieval (replacing exact/fuzzy match) | Strong technical depth talking point | Medium-High |
-| S5 | Video/audio ingestion (transcription via Whisper or similar) | Fulfills the full original scope, but highest effort and highest risk | High |
+| S5 | Video/audio ingestion (transcription via Groq Whisper API `whisper-large-v3-turbo`) | Fulfills full multi-source scope with automated Speech-to-Text | Completed |
 | S6 | Basic automated test suite beyond MVP smoke tests | Good practice, lower demo-visible impact | Low-Medium |
 | S7 | Learning path generation (ordered sequence through prerequisite graph) | Directly extends concept graph into something actionable | Medium |
 

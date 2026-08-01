@@ -12,9 +12,19 @@ export const UploadControl: React.FC<UploadControlProps> = ({ onIngestSuccess })
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB Limit
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setSelectedFile(null);
+        setErrorMsg(`File size exceeds the 50MB limit (${(file.size / (1024 * 1024)).toFixed(1)}MB selected). Please upload a smaller file.`);
+        setSuccessMsg(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      setSelectedFile(file);
       setErrorMsg(null);
       setSuccessMsg(null);
     }
@@ -22,6 +32,11 @@ export const UploadControl: React.FC<UploadControlProps> = ({ onIngestSuccess })
 
   const handleUpload = async () => {
     if (!selectedFile) return;
+
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      setErrorMsg(`File size exceeds the 50MB limit (${(selectedFile.size / (1024 * 1024)).toFixed(1)}MB). Please upload a smaller file.`);
+      return;
+    }
 
     setLoading(true);
     setErrorMsg(null);
@@ -64,7 +79,7 @@ export const UploadControl: React.FC<UploadControlProps> = ({ onIngestSuccess })
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept=".pdf,.txt,.md,.transcript"
+          accept=".pdf,.txt,.md,.transcript,.vtt,.srt,.mp4,.mp3,.wav,.m4a,.webm,.avi,.mov"
           style={{ display: 'none' }}
         />
 

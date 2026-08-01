@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, FileText, Layers, Network, BookOpen, Database, Cpu, TrendingUp } from 'lucide-react';
+import { Skeleton } from './Skeleton';
 
 export const AnalyticsView: React.FC = () => {
   const [analytics, setAnalytics] = useState<any | null>(null);
@@ -14,7 +15,45 @@ export const AnalyticsView: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Computing workspace analytics...</div>;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div>
+          <Skeleton width="260px" height="24px" style={{ marginBottom: '8px' }} />
+          <Skeleton width="480px" height="16px" />
+        </div>
+
+        {/* 4 Stat Cards Skeletons */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1.25rem' }}>
+              <Skeleton width="60%" height="14px" style={{ marginBottom: '10px' }} />
+              <Skeleton width="40%" height="30px" style={{ marginBottom: '10px' }} />
+              <Skeleton width="70%" height="12px" />
+            </div>
+          ))}
+        </div>
+
+        {/* 2 Distribution Cards Skeletons */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          {[1, 2].map((i) => (
+            <div key={i} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '1.5rem' }}>
+              <Skeleton width="220px" height="20px" style={{ marginBottom: '1.25rem' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {[1, 2, 3].map((j) => (
+                  <div key={j}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <Skeleton width="100px" height="14px" />
+                      <Skeleton width="50px" height="14px" />
+                    </div>
+                    <Skeleton width="100%" height="8px" borderRadius="4px" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   const metrics = analytics?.metrics || {

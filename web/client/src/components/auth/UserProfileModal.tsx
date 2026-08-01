@@ -19,6 +19,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   const [passMsg, setPassMsg] = useState<string | null>(null);
   const [passError, setPassError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [logoutAllLoading, setLogoutAllLoading] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [confirmLogoutAll, setConfirmLogoutAll] = useState(false);
 
@@ -66,6 +68,28 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
     } catch {
       setLoading(false);
       setPassError('Network error.');
+    }
+  };
+
+  const handleLogout = async () => {
+    setLogoutLoading(true);
+    try {
+      await logout();
+    } finally {
+      setLogoutLoading(false);
+      setConfirmLogout(false);
+      onClose();
+    }
+  };
+
+  const handleLogoutAll = async () => {
+    setLogoutAllLoading(true);
+    try {
+      await logoutAllSessions();
+    } finally {
+      setLogoutAllLoading(false);
+      setConfirmLogoutAll(false);
+      onClose();
     }
   };
 
@@ -174,8 +198,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
           confirmLabel="Log Out"
           cancelLabel="Stay Logged In"
           variant="warning"
-          onConfirm={() => { setConfirmLogout(false); logout(); onClose(); }}
-          onCancel={() => setConfirmLogout(false)}
+          isLoading={logoutLoading}
+          onConfirm={handleLogout}
+          onCancel={() => !logoutLoading && setConfirmLogout(false)}
         />
 
         {/* Confirm: Logout All Sessions */}
@@ -186,8 +211,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
           confirmLabel="Logout All Devices"
           cancelLabel="Cancel"
           variant="danger"
-          onConfirm={() => { setConfirmLogoutAll(false); logoutAllSessions(); onClose(); }}
-          onCancel={() => setConfirmLogoutAll(false)}
+          isLoading={logoutAllLoading}
+          onConfirm={handleLogoutAll}
+          onCancel={() => !logoutAllLoading && setConfirmLogoutAll(false)}
         />
       </div>
     </div>

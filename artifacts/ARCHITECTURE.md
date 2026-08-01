@@ -54,8 +54,8 @@ interface Parser {
 - `registry.ts` holds an array of registered parsers. The orchestrator
   asks the registry "who supports this file?" and never contains
   format-specific logic itself.
-- MVP parsers: `pdfParser.ts`, `textTranscriptParser.ts`.
-- Adding video/audio later = one new `videoParser.ts` + one registry line.
+- Registered parsers: `pdfParser.ts`, `textTranscriptParser.ts`, `videoParser.ts`.
+- Video/audio ingestion supports VTT/SRT caption tracks, sidecar transcript discovery, and automatic Speech-to-Text (STT) transcription via Groq Whisper API (`whisper-large-v3-turbo`).
 
 ### 2.2 Normalization Layer (`src/normalization/`)
 - Converts any parser's raw output into the single canonical shape:

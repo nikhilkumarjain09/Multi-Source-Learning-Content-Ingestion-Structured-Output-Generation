@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Loader2 } from 'lucide-react';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -8,6 +8,7 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'danger' | 'warning' | 'info';
+  isLoading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -36,6 +37,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   variant = 'danger',
+  isLoading = false,
   onConfirm,
   onCancel,
 }) => {
@@ -43,14 +45,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   // Close on Escape key
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isLoading) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onCancel();
       if (e.key === 'Enter') onConfirm();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, onConfirm, onCancel]);
+  }, [isOpen, isLoading, onConfirm, onCancel]);
 
   if (!isOpen) return null;
 
@@ -60,7 +62,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
       {/* Overlay */}
       <div
-        onClick={onCancel}
+        onClick={() => !isLoading && onCancel()}
         style={{
           position: 'fixed',
           inset: 0,
@@ -115,19 +117,20 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               </h3>
             </div>
             <button
-              onClick={onCancel}
+              onClick={() => !isLoading && onCancel()}
+              disabled={isLoading}
               style={{
                 background: 'none',
                 border: 'none',
-                cursor: 'pointer',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
                 color: 'var(--text-muted, #9ca3af)',
                 padding: 4,
                 borderRadius: 6,
                 display: 'flex',
                 transition: 'color 0.15s',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary, #111827)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted, #9ca3af)')}
+              onMouseEnter={(e) => !isLoading && (e.currentTarget.style.color = 'var(--text-primary, #111827)')}
+              onMouseLeave={(e) => !isLoading && (e.currentTarget.style.color = 'var(--text-muted, #9ca3af)')}
             >
               <X size={16} />
             </button>
@@ -146,7 +149,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           {/* Actions */}
           <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
             <button
-              onClick={onCancel}
+              onClick={() => !isLoading && onCancel()}
+              disabled={isLoading}
               style={{
                 padding: '0.5rem 1.1rem',
                 borderRadius: 8,
@@ -155,45 +159,63 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 background: 'var(--bg-base, #f9fafb)',
                 border: '1px solid var(--border-color, #e5e7eb)',
                 color: 'var(--text-secondary, #4b5563)',
-                cursor: 'pointer',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                opacity: isLoading ? 0.6 : 1,
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover, #f3f4f6)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-base, #f9fafb)')}
+              onMouseEnter={(e) => !isLoading && (e.currentTarget.style.background = 'var(--bg-hover, #f3f4f6)')}
+              onMouseLeave={(e) => !isLoading && (e.currentTarget.style.background = 'var(--bg-base, #f9fafb)')}
             >
               {cancelLabel}
             </button>
             <button
               onClick={onConfirm}
+              disabled={isLoading}
               style={{
                 padding: '0.5rem 1.25rem',
                 borderRadius: 8,
                 fontSize: 13,
                 fontWeight: 600,
-                background: colors.bg,
+                background: isLoading ? 'var(--border-color, #9ca3af)' : colors.bg,
                 border: 'none',
                 color: '#ffffff',
-                cursor: 'pointer',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
                 transition: 'background 0.15s, transform 0.1s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = colors.hover;
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                if (!isLoading) {
+                  e.currentTarget.style.background = colors.hover;
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = colors.bg;
-                e.currentTarget.style.transform = 'translateY(0)';
+                if (!isLoading) {
+                  e.currentTarget.style.background = colors.bg;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }
               }}
             >
-              {confirmLabel}
+              {isLoading ? (
+                <>
+                  <Loader2 size={15} className="spinner" />
+                  Logging out...
+                </>
+              ) : (
+                confirmLabel
+              )}
             </button>
           </div>
 
           {/* Keyboard hint */}
-          <p style={{ fontSize: 11, color: 'var(--text-muted, #9ca3af)', textAlign: 'center', marginTop: '0.85rem' }}>
-            Press <kbd style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '1px 5px', fontSize: 10 }}>Enter</kbd> to confirm &nbsp;·&nbsp;
-            <kbd style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '1px 5px', fontSize: 10 }}>Esc</kbd> to cancel
-          </p>
+          {!isLoading && (
+            <p style={{ fontSize: 11, color: 'var(--text-muted, #9ca3af)', textAlign: 'center', marginTop: '0.85rem' }}>
+              Press <kbd style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '1px 5px', fontSize: 10 }}>Enter</kbd> to confirm &nbsp;·&nbsp;
+              <kbd style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '1px 5px', fontSize: 10 }}>Esc</kbd> to cancel
+            </p>
+          )}
         </div>
       </div>
     </>

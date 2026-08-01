@@ -44,7 +44,11 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-const upload = multer({ dest: uploadDir });
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB limit
+const upload = multer({
+  dest: uploadDir,
+  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+});
 const app = express();
 
 app.use(cors());
@@ -515,10 +519,28 @@ app.put('/api/auth/change-password', authenticateToken, async (req: Authenticate
 
 /**
  * POST /api/ingest
+ * Ingests PDF, transcript, or video/audio files (Max size: 50MB)
  */
-app.post('/api/ingest', upload.single('file'), async (req, res) => {
+app.post('/api/ingest', (req, res, next) => {
+  upload.single('file')(req, res, (err: any) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE' || err.message?.includes('File too large')) {
+        res.status(422).json({ error: 'File size exceeds the maximum allowed limit of 50MB. Please upload a smaller file.' });
+        return;
+      }
+      res.status(422).json({ error: err.message || 'File upload failed.' });
+      return;
+    }
+    next();
+  });
+}, async (req, res) => {
   if (!req.file) {
     res.status(422).json({ error: 'No file uploaded. Please attach a PDF, transcript, or video/audio file.' });
+    return;
+  }
+
+  if (req.file.size > MAX_FILE_SIZE_BYTES) {
+    res.status(422).json({ error: 'File size exceeds the maximum allowed limit of 50MB. Please upload a smaller file.' });
     return;
   }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Network, AlertTriangle, Lightbulb, ArrowRight, BrainCircuit, ShieldAlert } from 'lucide-react';
 import { NavTab } from './Sidebar';
+import { Skeleton } from './Skeleton';
 
 interface AIInsightsViewProps {
   onSelectTopic: (topic: string) => void;
@@ -24,8 +25,62 @@ export const AIInsightsView: React.FC<AIInsightsViewProps> = ({
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-        Analyzing concept topology & generating AI knowledge insights...
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Header Skeleton */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <Skeleton width="280px" height="24px" style={{ marginBottom: '8px' }} />
+            <Skeleton width="420px" height="16px" />
+          </div>
+          <Skeleton width="180px" height="28px" borderRadius="12px" />
+        </div>
+
+        {/* Hub Concepts Card Skeleton */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--border-radius-md)',
+          padding: '1.5rem',
+        }}>
+          <Skeleton width="240px" height="20px" style={{ marginBottom: '1.25rem' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} style={{ backgroundColor: 'var(--bg-base)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-sm)', padding: '1rem' }}>
+                <Skeleton width="60%" height="16px" style={{ marginBottom: '8px' }} />
+                <Skeleton width="90%" height="14px" style={{ marginBottom: '6px' }} />
+                <Skeleton width="80%" height="14px" style={{ marginBottom: '12px' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Skeleton width="80px" height="20px" borderRadius="10px" />
+                  <Skeleton width="16px" height="16px" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Missing Prerequisites Card Skeleton */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--border-radius-md)',
+          padding: '1.5rem',
+        }}>
+          <Skeleton width="320px" height="20px" style={{ marginBottom: '1.25rem' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {[1, 2].map((i) => (
+              <div key={i} style={{ backgroundColor: 'var(--bg-base)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.85rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <Skeleton width="20px" height="20px" borderRadius="50%" />
+                  <div>
+                    <Skeleton width="300px" height="15px" style={{ marginBottom: '4px' }} />
+                    <Skeleton width="180px" height="12px" />
+                  </div>
+                </div>
+                <Skeleton width="100px" height="30px" borderRadius="6px" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

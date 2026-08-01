@@ -59,7 +59,7 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
 
 - **SynthLearn Branding & Enterprise SaaS UI**: Modern Light Theme design system inspired by Linear, Notion, and Vercel Dashboard with Command Palette (`Cmd/Ctrl + K`), full sidebar navigation, document workspace, study decks, multi-format summaries, and analytics.
 - **Production-Ready JWT Authentication**: Custom email/password authentication with bcrypt hashing, access tokens, persistent refresh token rotation, Nodemailer SMTP verification/reset emails, and protected routes.
-- **Extensible Plugin-Based Parser Registry**: Supports multiple file types (PDF, Plain Text, Markdown, VTT Subtitles, Audio/Video sidecar transcripts).
+- **Extensible Plugin-Based Parser Registry**: Supports multiple file types (PDF, Plain Text, Markdown, VTT Subtitles, Audio/Video sidecar transcripts, and **Automated Speech-to-Text (STT) via Groq Whisper API `whisper-large-v3-turbo`** for standalone `.mp4`/`.mp3` media files up to 50MB).
 - **Provider-Agnostic LLM Abstraction**: Swappable between Groq API (`llama-3.3-70b-versatile`), NVIDIA NIM (`meta/llama-3.3-70b-instruct`), and Anthropic Claude via `.env` configuration.
 - **Robust Zod Schema Validation & Repair Retry**: Validates raw LLM JSON responses against strict schemas. Automatically triggers a targeted repair retry prompt upon malformed JSON.
 - **Cross-Chunk & Cross-Document Deduplication**: Performs second-pass multi-chunk LLM reconciliation for long documents and cross-document concept deduplication via lowercased `canonical_name` matching.
