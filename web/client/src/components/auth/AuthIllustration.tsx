@@ -6,8 +6,9 @@ export const AuthIllustration: React.FC = () => {
   return (
     <div style={{
       width: '100%',
-      height: '100%',
-      minHeight: '580px',
+      height: '560px',
+      minHeight: '560px',
+      maxHeight: '560px',
       backgroundColor: '#F0F4FF',
       background: 'linear-gradient(135deg, #EFF4FF 0%, #F5F3FF 50%, #EEF2FF 100%)',
       borderRadius: 'var(--border-radius-lg)',

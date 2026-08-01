@@ -34,7 +34,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(clean)) {
-      setEmailError('Please enter a valid email address (e.g. name@company.com).');
+      setEmailError('Please enter a valid email address.');
       return false;
     }
     setEmailError(null);
@@ -71,7 +71,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   return (
     <AuthCard>
       {/* Brand Header */}
-      <BrandHeader title={`Sign in to ${BRANDING.APP_NAME}`} subtitle={BRANDING.APP_TAGLINE} />
+      <BrandHeader title={`Sign in to ${BRANDING.APP_NAME}`} subtitle={BRANDING.APP_TAGLINE} compact />
 
       {/* Global Error Banner */}
       {globalError && (
@@ -81,23 +81,22 @@ export const LoginView: React.FC<LoginViewProps> = ({
             backgroundColor: 'var(--error-glow)',
             border: '1px solid var(--error)',
             borderRadius: 'var(--border-radius-sm)',
-            padding: '0.75rem',
-            fontSize: '13px',
+            padding: '0.6rem 0.75rem',
+            fontSize: '12px',
             color: 'var(--error)',
-            marginBottom: '1.25rem',
+            marginBottom: '0.75rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
-            animation: 'fadeIn 0.2s ease-out',
+            gap: '0.4rem',
           }}
         >
-          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <AlertCircle size={14} style={{ flexShrink: 0 }} />
           <span>{globalError}</span>
         </div>
       )}
 
       {/* Form Controls */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
         <AuthInput
           id="login-email"
           label="Work Email Address"
@@ -109,7 +108,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
           }}
           onBlur={() => validateEmail(email)}
           placeholder="name@company.com"
-          icon={<Mail size={16} />}
+          icon={<Mail size={15} />}
           error={emailError}
           isValid={!!email && !emailError}
           autoComplete="email"
@@ -127,18 +126,18 @@ export const LoginView: React.FC<LoginViewProps> = ({
             }}
             onBlur={() => validatePass(password)}
             placeholder="••••••••"
-            icon={<Lock size={16} />}
+            icon={<Lock size={15} />}
             error={passError}
             autoComplete="current-password"
             showCapsLockWarning
           />
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.35rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
             <button
               type="button"
               onClick={onNavigateToForgotPassword}
               style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 color: 'var(--accent)',
                 fontWeight: 600,
                 background: 'none',
@@ -153,7 +152,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '12px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '11px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
             <input
               type="checkbox"
               checked={rememberMe}
@@ -168,15 +167,15 @@ export const LoginView: React.FC<LoginViewProps> = ({
           type="submit"
           className="btn-primary"
           disabled={loading}
-          style={{ width: '100%', justifyContent: 'center', padding: '0.7rem', fontSize: '13px', fontWeight: 600, marginTop: '0.25rem' }}
+          style={{ width: '100%', justifyContent: 'center', padding: '0.65rem', fontSize: '12px', fontWeight: 600, marginTop: '0.35rem' }}
         >
-          {loading ? <RefreshCw size={18} className="spinner" /> : <span>Sign In to Workspace</span>}
-          {!loading && <ArrowRight size={16} />}
+          {loading ? <RefreshCw size={16} className="spinner" /> : <span>Sign In to Workspace</span>}
+          {!loading && <ArrowRight size={15} />}
         </button>
       </form>
 
       {/* Switch to Signup Prompt */}
-      <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '13px', color: 'var(--text-secondary)' }}>
+      <div style={{ marginTop: '0.85rem', textAlign: 'center', fontSize: '12px', color: 'var(--text-secondary)' }}>
         Don't have an account?{' '}
         <button
           onClick={onNavigateToSignup}

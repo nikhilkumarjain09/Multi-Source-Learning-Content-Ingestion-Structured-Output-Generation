@@ -1,5 +1,4 @@
 import React from 'react';
-import { Check, X } from 'lucide-react';
 
 interface PasswordStrengthProps {
   password: string;
@@ -13,14 +12,7 @@ export const PasswordStrength: React.FC<PasswordStrengthProps> = ({ password }) 
   const hasLower = /[a-z]/.test(password);
   const hasNum = /[0-9]/.test(password);
 
-  const requirements = [
-    { label: 'At least 8 characters', met: hasMinLen },
-    { label: 'One uppercase letter (A-Z)', met: hasUpper },
-    { label: 'One lowercase letter (a-z)', met: hasLower },
-    { label: 'One number (0-9)', met: hasNum },
-  ];
-
-  const score = requirements.filter((r) => r.met).length;
+  const score = [hasMinLen, hasUpper, hasLower, hasNum].filter(Boolean).length;
 
   const getMeterColor = () => {
     if (score <= 1) return 'var(--error)';
@@ -29,64 +21,33 @@ export const PasswordStrength: React.FC<PasswordStrengthProps> = ({ password }) 
   };
 
   const getMeterLabel = () => {
-    if (score <= 1) return 'Weak Password';
-    if (score <= 3) return 'Moderate Password';
-    return 'Strong Password';
+    if (score <= 1) return 'Weak';
+    if (score <= 3) return 'Moderate';
+    return 'Strong';
   };
 
   return (
-    <div style={{ marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-      {/* Meter Bar */}
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
-            Password Strength
-          </span>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: getMeterColor() }}>
-            {getMeterLabel()}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', gap: '4px', height: '4px' }}>
-          {[1, 2, 3, 4].map((step) => (
-            <div
-              key={step}
-              style={{
-                flex: 1,
-                borderRadius: '2px',
-                backgroundColor: step <= score ? getMeterColor() : 'var(--border-color)',
-                transition: 'background-color 0.2s ease',
-              }}
-            />
-          ))}
-        </div>
+    <div style={{ marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)' }}>
+          Password Strength
+        </span>
+        <span style={{ fontSize: '10px', fontWeight: 600, color: getMeterColor() }}>
+          {getMeterLabel()}
+        </span>
       </div>
 
-      {/* Requirements Checklist */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '4px 8px',
-        backgroundColor: 'var(--bg-base)',
-        padding: '0.5rem 0.65rem',
-        borderRadius: '6px',
-        border: '1px solid var(--border-color)',
-      }}>
-        {requirements.map((req) => (
+      <div style={{ display: 'flex', gap: '3px', height: '3px' }}>
+        {[1, 2, 3, 4].map((step) => (
           <div
-            key={req.label}
+            key={step}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              fontSize: '11px',
-              color: req.met ? 'var(--success)' : 'var(--text-muted)',
-              transition: 'color 0.15s ease',
+              flex: 1,
+              borderRadius: '2px',
+              backgroundColor: step <= score ? getMeterColor() : 'var(--border-color)',
+              transition: 'background-color 0.2s ease',
             }}
-          >
-            {req.met ? <Check size={12} color="var(--success)" /> : <X size={12} color="var(--text-muted)" />}
-            <span>{req.label}</span>
-          </div>
+          />
         ))}
       </div>
     </div>

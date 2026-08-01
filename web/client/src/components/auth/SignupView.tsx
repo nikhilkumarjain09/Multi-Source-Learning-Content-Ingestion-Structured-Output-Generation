@@ -47,7 +47,7 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(clean)) {
-      setEmailError('Please enter a valid email address.');
+      setEmailError('Please enter a valid email.');
       return false;
     }
     setEmailError(null);
@@ -56,11 +56,11 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
 
   const validatePass = (val: string) => {
     if (val.length < 8) {
-      setPassError('Password must be at least 8 characters long.');
+      setPassError('8+ chars required.');
       return false;
     }
     if (!/[A-Z]/.test(val) || !/[a-z]/.test(val) || !/[0-9]/.test(val)) {
-      setPassError('Password must include uppercase, lowercase, and numeric characters.');
+      setPassError('Needs upper, lower & number.');
       return false;
     }
     setPassError(null);
@@ -87,7 +87,7 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
     const isConfirmValid = validateConfirm(confirmPassword);
 
     if (!acceptTerms) {
-      setTermsError('You must accept the Terms of Service and Privacy Policy.');
+      setTermsError('Must accept terms to proceed.');
       return;
     } else {
       setTermsError(null);
@@ -102,14 +102,14 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
     if (!result.success) {
       setGlobalError(result.error || 'Failed to create account.');
     } else {
-      setSuccessMsg(result.message || 'Account created successfully! Please check your email inbox (and check your Spam/Junk folder if you don\'t see it).');
+      setSuccessMsg(result.message || 'Account created successfully! Check your email inbox (and Spam/Junk folder).');
     }
   };
 
   return (
     <AuthCard>
       {/* Brand Header */}
-      <BrandHeader title={`Join ${BRANDING.APP_NAME}`} subtitle="Get started with your AI learning workspace" />
+      <BrandHeader title={`Join ${BRANDING.APP_NAME}`} subtitle="Get started with your AI workspace" compact />
 
       {/* Global Banners */}
       {globalError && (
@@ -119,16 +119,16 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
             backgroundColor: 'var(--error-glow)',
             border: '1px solid var(--error)',
             borderRadius: 'var(--border-radius-sm)',
-            padding: '0.75rem',
-            fontSize: '13px',
+            padding: '0.5rem 0.75rem',
+            fontSize: '12px',
             color: 'var(--error)',
-            marginBottom: '1.25rem',
+            marginBottom: '0.75rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.4rem',
           }}
         >
-          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <AlertCircle size={14} style={{ flexShrink: 0 }} />
           <span>{globalError}</span>
         </div>
       )}
@@ -139,22 +139,22 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
             backgroundColor: 'var(--success-glow)',
             border: '1px solid var(--success)',
             borderRadius: 'var(--border-radius-sm)',
-            padding: '0.85rem',
-            fontSize: '13px',
+            padding: '0.6rem 0.75rem',
+            fontSize: '12px',
             color: '#16A34A',
-            marginBottom: '1.25rem',
+            marginBottom: '0.75rem',
             display: 'flex',
             alignItems: 'flex-start',
-            gap: '0.5rem',
+            gap: '0.4rem',
           }}
         >
-          <CheckCircle2 size={18} style={{ marginTop: '2px', flexShrink: 0 }} />
+          <CheckCircle2 size={16} style={{ marginTop: '1px', flexShrink: 0 }} />
           <span>{successMsg}</span>
         </div>
       )}
 
       {/* Form Controls */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
         <AuthInput
           id="signup-fullname"
           label="Full Name"
@@ -166,7 +166,7 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
           }}
           onBlur={() => validateName(fullName)}
           placeholder="Jane Doe"
-          icon={<User size={16} />}
+          icon={<User size={15} />}
           error={nameError}
           isValid={!!fullName.trim() && !nameError}
           autoComplete="name"
@@ -183,54 +183,56 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
           }}
           onBlur={() => validateEmail(email)}
           placeholder="name@company.com"
-          icon={<Mail size={16} />}
+          icon={<Mail size={15} />}
           error={emailError}
           isValid={!!email && !emailError}
           autoComplete="email"
         />
 
-        <div>
-          <AuthInput
-            id="signup-password"
-            label="Security Password"
-            type="password"
-            value={password}
-            onChange={(val) => {
-              setPassword(val);
-              validatePass(val);
-              if (confirmPassword) validateConfirm(confirmPassword);
-            }}
-            onBlur={() => validatePass(password)}
-            placeholder="••••••••"
-            icon={<Lock size={16} />}
-            error={passError}
-            autoComplete="new-password"
-            showCapsLockWarning
-          />
+        {/* 2-Column Row for Password and Confirm Password */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+          <div>
+            <AuthInput
+              id="signup-password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(val) => {
+                setPassword(val);
+                validatePass(val);
+                if (confirmPassword) validateConfirm(confirmPassword);
+              }}
+              onBlur={() => validatePass(password)}
+              placeholder="••••••••"
+              icon={<Lock size={15} />}
+              error={passError}
+              autoComplete="new-password"
+              showCapsLockWarning
+            />
+            <PasswordStrength password={password} />
+          </div>
 
-          <PasswordStrength password={password} />
+          <AuthInput
+            id="signup-confirm-password"
+            label="Confirm Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(val) => {
+              setConfirmPassword(val);
+              if (confirmError) validateConfirm(confirmPassword);
+            }}
+            onBlur={() => validateConfirm(confirmPassword)}
+            placeholder="••••••••"
+            icon={<Lock size={15} />}
+            error={confirmError}
+            isValid={!!confirmPassword && confirmPassword === password && !confirmError}
+            autoComplete="new-password"
+          />
         </div>
 
-        <AuthInput
-          id="signup-confirm-password"
-          label="Confirm Password"
-          type="password"
-          value={confirmPassword}
-          onChange={(val) => {
-            setConfirmPassword(val);
-            if (confirmError) validateConfirm(val);
-          }}
-          onBlur={() => validateConfirm(confirmPassword)}
-          placeholder="••••••••"
-          icon={<Lock size={16} />}
-          error={confirmError}
-          isValid={!!confirmPassword && confirmPassword === password && !confirmError}
-          autoComplete="new-password"
-        />
-
-        {/* Terms of Service Checkbox */}
-        <div>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '12px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+        {/* Terms Checkbox */}
+        <div style={{ marginTop: '0.1rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '11px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={acceptTerms}
@@ -238,28 +240,28 @@ export const SignupView: React.FC<SignupViewProps> = ({ onNavigateToLogin }) => 
                 setAcceptTerms(e.target.checked);
                 if (e.target.checked) setTermsError(null);
               }}
-              style={{ marginTop: '2px', accentColor: 'var(--accent)' }}
+              style={{ accentColor: 'var(--accent)' }}
             />
             <span>
-              I agree to the <a href="#terms" onClick={(e) => e.preventDefault()} style={{ color: 'var(--accent)', fontWeight: 600 }}>Terms of Service</a> and <a href="#privacy" onClick={(e) => e.preventDefault()} style={{ color: 'var(--accent)', fontWeight: 600 }}>Privacy Policy</a>.
+              Agree to <a href="#terms" onClick={(e) => e.preventDefault()} style={{ color: 'var(--accent)', fontWeight: 600 }}>Terms</a> & <a href="#privacy" onClick={(e) => e.preventDefault()} style={{ color: 'var(--accent)', fontWeight: 600 }}>Privacy Policy</a>
             </span>
           </label>
-          {termsError && <div style={{ fontSize: '11px', color: 'var(--error)', marginTop: '3px' }}>{termsError}</div>}
+          {termsError && <div style={{ fontSize: '10px', color: 'var(--error)', marginTop: '1px' }}>{termsError}</div>}
         </div>
 
         <button
           type="submit"
           className="btn-primary"
           disabled={loading}
-          style={{ width: '100%', justifyContent: 'center', padding: '0.7rem', fontSize: '13px', fontWeight: 600, marginTop: '0.25rem' }}
+          style={{ width: '100%', justifyContent: 'center', padding: '0.6rem', fontSize: '12px', fontWeight: 600, marginTop: '0.2rem' }}
         >
-          {loading ? <RefreshCw size={18} className="spinner" /> : <span>Create SynthLearn Account</span>}
-          {!loading && <ArrowRight size={16} />}
+          {loading ? <RefreshCw size={16} className="spinner" /> : <span>Create Account</span>}
+          {!loading && <ArrowRight size={15} />}
         </button>
       </form>
 
       {/* Switch to Login Prompt */}
-      <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '13px', color: 'var(--text-secondary)' }}>
+      <div style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '12px', color: 'var(--text-secondary)' }}>
         Already have an account?{' '}
         <button
           onClick={onNavigateToLogin}

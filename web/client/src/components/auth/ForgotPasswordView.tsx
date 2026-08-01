@@ -63,7 +63,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
   return (
     <AuthCard>
       {/* Brand Header */}
-      <BrandHeader title={`Reset ${BRANDING.APP_NAME} Password`} subtitle="Enter your account email to receive a password reset link" />
+      <BrandHeader title={`Reset ${BRANDING.APP_NAME} Password`} subtitle="Enter account email to receive 6-digit OTP reset code" compact />
 
       {globalError && (
         <div
@@ -72,16 +72,16 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
             backgroundColor: 'var(--error-glow)',
             border: '1px solid var(--error)',
             borderRadius: 'var(--border-radius-sm)',
-            padding: '0.75rem',
-            fontSize: '13px',
+            padding: '0.6rem 0.75rem',
+            fontSize: '12px',
             color: 'var(--error)',
-            marginBottom: '1.25rem',
+            marginBottom: '0.75rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.4rem',
           }}
         >
-          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <AlertCircle size={14} style={{ flexShrink: 0 }} />
           <span>{globalError}</span>
         </div>
       )}
@@ -92,26 +92,26 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
             backgroundColor: 'var(--success-glow)',
             border: '1px solid var(--success)',
             borderRadius: 'var(--border-radius-sm)',
-            padding: '0.85rem',
-            fontSize: '13px',
+            padding: '0.65rem 0.75rem',
+            fontSize: '12px',
             color: '#16A34A',
-            marginBottom: '1.25rem',
+            marginBottom: '0.75rem',
             display: 'flex',
             alignItems: 'flex-start',
-            gap: '0.5rem',
+            gap: '0.4rem',
           }}
         >
-          <CheckCircle2 size={18} style={{ marginTop: '2px', flexShrink: 0 }} />
+          <CheckCircle2 size={16} style={{ marginTop: '1px', flexShrink: 0 }} />
           <div>
             <div>{message}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Note: Check your Spam or Junk folder if you do not see the email in your main inbox.
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Note: Check your Spam or Junk folder if not found in inbox.
             </div>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
         <AuthInput
           id="forgot-email"
           label="Account Email Address"
@@ -123,7 +123,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
           }}
           onBlur={() => validateEmail(email)}
           placeholder="name@company.com"
-          icon={<Mail size={16} />}
+          icon={<Mail size={15} />}
           error={emailError}
           isValid={!!email && !emailError}
           autoComplete="email"
@@ -133,19 +133,19 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onNaviga
           type="submit"
           className="btn-primary"
           disabled={loading}
-          style={{ width: '100%', justifyContent: 'center', padding: '0.7rem', fontSize: '13px', fontWeight: 600 }}
+          style={{ width: '100%', justifyContent: 'center', padding: '0.65rem', fontSize: '12px', fontWeight: 600, marginTop: '0.35rem' }}
         >
-          {loading ? <RefreshCw size={18} className="spinner" /> : <span>Send Reset Instructions</span>}
-          {!loading && <ArrowRight size={16} />}
+          {loading ? <RefreshCw size={16} className="spinner" /> : <span>Send Reset Instructions</span>}
+          {!loading && <ArrowRight size={15} />}
         </button>
       </form>
 
-      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+      <div style={{ marginTop: '0.85rem', textAlign: 'center' }}>
         <button
           onClick={onNavigateToLogin}
-          style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+          style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}
         >
-          <ArrowLeft size={14} /> Back to Login
+          <ArrowLeft size={13} /> Back to Login
         </button>
       </div>
 
