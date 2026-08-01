@@ -116,8 +116,8 @@ export function generateLearningPathFromGraph(
 /**
  * Generates an ordered learning path for a stored topic by retrieving its concept graph.
  */
-export function generateLearningPathByTopic(topicName: string): LearningPath | null {
-  const artifacts = getArtifactsByTopic(topicName);
+export async function generateLearningPathByTopic(topicName: string): Promise<LearningPath | null> {
+  const artifacts = await getArtifactsByTopic(topicName);
   if (!artifacts) {
     return null;
   }

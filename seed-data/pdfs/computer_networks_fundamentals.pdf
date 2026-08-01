@@ -9,9 +9,9 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
 endobj
 4 0 obj
-<< /Length 309 >>
+<< /Length 307 >>
 stream
-BT /F1 14 Tf 50 720 Td (Neural Networks and Deep Learning Overview) Tj /F1 10 Tf 0 -30 Td (Deep Learning is a subset of machine learning based on artificial neural networks. Convolutional Neural Networks are widely used for image recognition, while Recurrent Neural Networks excel at sequence modeling.) Tj ET
+BT /F1 14 Tf 50 720 Td (Computer Networking Fundamentals & Protocols) Tj /F1 10 Tf 0 -30 Td (Computer Networks enable communication between interconnected devices. The OSI Model defines 7 layers of network communication. Key protocols include TCP, IP, HTTP, DNS, and TLS for secure data transmission.) Tj ET
 endstream
 endobj
 5 0 obj
@@ -24,9 +24,9 @@ xref
 0000000058 00000 n 
 0000000115 00000 n 
 0000000241 00000 n 
-0000000601 00000 n 
+0000000599 00000 n 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-671
+669
 %%EOF

@@ -1,0 +1,14 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:05.000
+Welcome to the Computer Vision and Image Processing Lecture.
+
+2
+00:00:05.500 --> 00:00:10.000
+Today we explore Convolutional Layers, Feature Maps, and Spatial Pooling.
+
+3
+00:00:10.500 --> 00:00:16.000
+Object Detection algorithms like YOLO and Faster R-CNN locate bounding boxes around objects in real-time video streams.
+

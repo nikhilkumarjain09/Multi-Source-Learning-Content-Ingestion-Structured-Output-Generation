@@ -1,0 +1,14 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:05.000
+System Design Podcast episode on Scalable Distributed Systems.
+
+2
+00:00:05.500 --> 00:00:10.000
+Load Balancers distribute incoming traffic across web server clusters to prevent bottlenecks.
+
+3
+00:00:10.500 --> 00:00:16.000
+Database Sharding and In-Memory Caching with Redis improve throughput and reduce query latency.
+

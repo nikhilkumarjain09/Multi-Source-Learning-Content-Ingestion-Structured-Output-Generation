@@ -60,6 +60,8 @@ async function runWebApiTests() {
     console.log('\nAll Web API Endpoint Tests PASSED Successfully!');
   } finally {
     server.close();
+    const { disconnectDB } = await import('../src/storage/db');
+    await disconnectDB();
   }
 }
 

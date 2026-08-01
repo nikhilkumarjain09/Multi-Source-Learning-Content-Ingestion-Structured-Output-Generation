@@ -1,0 +1,14 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:05.000
+Welcome to Natural Language Processing and Large Language Models.
+
+2
+00:00:05.500 --> 00:00:10.000
+Transformer Architectures rely on Self-Attention Mechanisms to process sequence context in parallel.
+
+3
+00:00:10.500 --> 00:00:16.000
+Word Embeddings convert discrete text tokens into continuous high-dimensional vector spaces.
+

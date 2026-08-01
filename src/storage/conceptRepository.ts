@@ -1,124 +1,129 @@
 import { Concept } from '../shared/types';
-import { getDatabase } from './db';
+import { connectDB } from './db';
+import { ConceptModel } from './models';
 
 export { Concept };
 
-export function saveConcepts(concepts: Concept[]): void {
+function mapConcept(row: any): Concept {
+  return {
+    id: row.id,
+    documentId: row.documentId,
+    name: row.name,
+    description: row.description,
+  };
+}
+
+export async function saveConcepts(concepts: Concept[]): Promise<void> {
   if (concepts.length === 0) return;
-  const db = getDatabase();
-  const stmt = db.prepare(`
-    INSERT INTO concepts (id, document_id, name, description, canonical_name)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-  const insertMany = db.transaction((items: Concept[]) => {
-    for (const item of items) {
-      const canonicalName = item.name.trim().toLowerCase();
-      stmt.run(item.id, item.documentId, item.name, item.description, canonicalName);
-    }
+  await connectDB();
+
+  const operations = concepts.map(item => {
+    const canonicalName = item.name.trim().toLowerCase();
+    return {
+      updateOne: {
+        filter: { id: item.id },
+        update: {
+          $set: {
+            id: item.id,
+            documentId: item.documentId,
+            name: item.name,
+            canonicalName,
+            description: item.description,
+          },
+          $addToSet: { documentIds: item.documentId },
+        },
+        upsert: true,
+      },
+    };
   });
-  insertMany(concepts);
+
+  await ConceptModel.bulkWrite(operations);
 }
 
 /**
- * Links a concept to a document in the concept_documents junction table.
+ * Links a concept to a document via documentIds array.
  */
-export function linkConceptToDocument(conceptId: string, documentId: string): void {
-  const db = getDatabase();
-  db.prepare(`
-    INSERT OR IGNORE INTO concept_documents (concept_id, document_id)
-    VALUES (?, ?)
-  `).run(conceptId, documentId);
+export async function linkConceptToDocument(conceptId: string, documentId: string): Promise<void> {
+  await connectDB();
+  await ConceptModel.updateOne(
+    { id: conceptId },
+    { $addToSet: { documentIds: documentId } }
+  );
 }
 
 /**
  * Finds an existing concept by exact canonical (lowercased) name match.
  * Returns the first match or null if no existing concept with that name.
  */
-export function findConceptByCanonicalName(canonicalName: string): Concept | null {
-  const db = getDatabase();
-  const row = db.prepare(
-    'SELECT * FROM concepts WHERE canonical_name = ? LIMIT 1'
-  ).get(canonicalName) as any;
-
+export async function findConceptByCanonicalName(canonicalName: string): Promise<Concept | null> {
+  await connectDB();
+  const row = (await ConceptModel.findOne({ canonicalName: canonicalName.trim().toLowerCase() }).lean()) as any;
   if (!row) return null;
-
-  return {
-    id: row.id,
-    documentId: row.document_id,
-    name: row.name,
-    description: row.description,
-  };
+  return mapConcept(row);
 }
 
 /**
  * Updates an existing concept's description if the new one is longer/better.
  */
-export function updateConceptDescription(conceptId: string, description: string): void {
-  const db = getDatabase();
-  db.prepare(
-    'UPDATE concepts SET description = ? WHERE id = ? AND LENGTH(description) < LENGTH(?)'
-  ).run(description, conceptId, description);
+export async function updateConceptDescription(conceptId: string, description: string): Promise<void> {
+  await connectDB();
+  const concept = (await ConceptModel.findOne({ id: conceptId }).lean()) as any;
+  if (concept && description.length > (concept.description || '').length) {
+    await ConceptModel.updateOne({ id: conceptId }, { $set: { description } });
+  }
 }
 
 /**
- * Returns all document IDs linked to a concept via the junction table.
+ * Returns all document IDs linked to a concept.
  */
-export function getDocumentIdsForConcept(conceptId: string): string[] {
-  const db = getDatabase();
-  const rows = db.prepare(
-    'SELECT document_id FROM concept_documents WHERE concept_id = ?'
-  ).all(conceptId) as any[];
-  return rows.map(r => r.document_id);
+export async function getDocumentIdsForConcept(conceptId: string): Promise<string[]> {
+  await connectDB();
+  const row = (await ConceptModel.findOne({ id: conceptId }).lean()) as any;
+  if (!row) return [];
+  const ids = new Set<string>();
+  if (row.documentId) ids.add(row.documentId);
+  if (Array.isArray(row.documentIds)) {
+    row.documentIds.forEach((id: string) => ids.add(id));
+  }
+  return Array.from(ids);
 }
 
-export function getConceptsByDocumentId(documentId: string): Concept[] {
-  const db = getDatabase();
-  const rows = db.prepare('SELECT * FROM concepts WHERE document_id = ?').all(documentId) as any[];
-  return rows.map(r => ({
-    id: r.id,
-    documentId: r.document_id,
-    name: r.name,
-    description: r.description,
-  }));
+export async function getConceptsByDocumentId(documentId: string): Promise<Concept[]> {
+  await connectDB();
+  const rows = (await ConceptModel.find({
+    $or: [{ documentId }, { documentIds: documentId }],
+  }).lean()) as any[];
+  return rows.map(mapConcept);
 }
 
-export function getConceptsByName(name: string): Concept[] {
-  const db = getDatabase();
-  const rows = db.prepare('SELECT * FROM concepts WHERE LOWER(name) = LOWER(?)').all(name) as any[];
-  return rows.map(r => ({
-    id: r.id,
-    documentId: r.document_id,
-    name: r.name,
-    description: r.description,
-  }));
+export async function getConceptsByName(name: string): Promise<Concept[]> {
+  await connectDB();
+  const canonical = name.trim().toLowerCase();
+  const rows = (await ConceptModel.find({ canonicalName: canonical }).lean()) as any[];
+  return rows.map(mapConcept);
 }
 
-export function searchConceptsByName(query: string): Concept[] {
-  const db = getDatabase();
-  const rows = db.prepare('SELECT * FROM concepts WHERE LOWER(name) LIKE LOWER(?)').all(`%${query}%`) as any[];
-  return rows.map(r => ({
-    id: r.id,
-    documentId: r.document_id,
-    name: r.name,
-    description: r.description,
-  }));
+export async function searchConceptsByName(query: string): Promise<Concept[]> {
+  await connectDB();
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const rows = (await ConceptModel.find({
+    $or: [
+      { name: { $regex: escapedQuery, $options: 'i' } },
+      { canonicalName: { $regex: query.trim().toLowerCase(), $options: 'i' } },
+    ],
+  }).lean()) as any[];
+  return rows.map(mapConcept);
 }
 
-export function getConceptsByIds(ids: string[]): Concept[] {
+export async function getConceptsByIds(ids: string[]): Promise<Concept[]> {
   if (ids.length === 0) return [];
-  const db = getDatabase();
-  const placeholders = ids.map(() => '?').join(',');
-  const rows = db.prepare(`SELECT * FROM concepts WHERE id IN (${placeholders})`).all(...ids) as any[];
-  return rows.map(r => ({
-    id: r.id,
-    documentId: r.document_id,
-    name: r.name,
-    description: r.description,
-  }));
+  await connectDB();
+  const rows = (await ConceptModel.find({ id: { $in: ids } }).lean()) as any[];
+  return rows.map(mapConcept);
 }
 
-export function getAllConceptNames(): string[] {
-  const db = getDatabase();
-  const rows = db.prepare('SELECT DISTINCT name FROM concepts ORDER BY name ASC').all() as any[];
-  return rows.map(r => r.name);
+export async function getAllConceptNames(): Promise<string[]> {
+  await connectDB();
+  const names = await ConceptModel.distinct('name');
+  return names.sort((a, b) => a.localeCompare(b));
 }

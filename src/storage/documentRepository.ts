@@ -1,27 +1,34 @@
 import { SourceDocument } from '../shared/types';
-import { getDatabase } from './db';
+import { connectDB } from './db';
+import { DocumentModel } from './models';
 
-export function saveDocument(doc: SourceDocument): void {
-  const db = getDatabase();
-  const stmt = db.prepare(`
-    INSERT INTO documents (id, filename, source_type, raw_text, metadata, ingested_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-  stmt.run(doc.id, doc.filename, doc.sourceType, doc.rawText, JSON.stringify(doc.metadata), doc.ingestedAt);
+export async function saveDocument(doc: SourceDocument): Promise<void> {
+  await connectDB();
+  await DocumentModel.findOneAndUpdate(
+    { id: doc.id },
+    {
+      id: doc.id,
+      filename: doc.filename,
+      sourceType: doc.sourceType,
+      rawText: doc.rawText,
+      metadata: doc.metadata,
+      ingestedAt: doc.ingestedAt,
+    },
+    { upsert: true, new: true }
+  );
 }
 
-export function getDocumentById(id: string): SourceDocument | null {
-  const db = getDatabase();
-  const stmt = db.prepare('SELECT * FROM documents WHERE id = ?');
-  const row = stmt.get(id) as any;
+export async function getDocumentById(id: string): Promise<SourceDocument | null> {
+  await connectDB();
+  const row = (await DocumentModel.findOne({ id }).lean()) as any;
   if (!row) return null;
 
   return {
     id: row.id,
     filename: row.filename,
-    sourceType: row.source_type,
-    rawText: row.raw_text,
-    metadata: JSON.parse(row.metadata),
-    ingestedAt: row.ingested_at,
+    sourceType: row.sourceType,
+    rawText: row.rawText,
+    metadata: (row.metadata || {}) as Record<string, unknown>,
+    ingestedAt: row.ingestedAt,
   };
 }

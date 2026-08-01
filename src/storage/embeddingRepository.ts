@@ -1,53 +1,51 @@
-import { getDatabase } from './db';
+import { connectDB } from './db';
+import { ConceptEmbeddingModel } from './models';
 
 export interface ConceptEmbedding {
   conceptId: string;
   embedding: number[];
 }
 
-export function saveConceptEmbedding(conceptId: string, embedding: number[]): void {
-  const db = getDatabase();
-  const serialized = JSON.stringify(embedding);
-  db.prepare(`
-    INSERT OR REPLACE INTO concept_embeddings (concept_id, embedding)
-    VALUES (?, ?)
-  `).run(conceptId, serialized);
+export async function saveConceptEmbedding(conceptId: string, embedding: number[]): Promise<void> {
+  await connectDB();
+  await ConceptEmbeddingModel.findOneAndUpdate(
+    { conceptId },
+    { conceptId, embedding },
+    { upsert: true, new: true }
+  );
 }
 
-export function saveConceptEmbeddings(entries: ConceptEmbedding[]): void {
+export async function saveConceptEmbeddings(entries: ConceptEmbedding[]): Promise<void> {
   if (entries.length === 0) return;
-  const db = getDatabase();
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO concept_embeddings (concept_id, embedding)
-    VALUES (?, ?)
-  `);
-  const insertMany = db.transaction((items: ConceptEmbedding[]) => {
-    for (const item of items) {
-      stmt.run(item.conceptId, JSON.stringify(item.embedding));
-    }
-  });
-  insertMany(entries);
+  await connectDB();
+
+  const operations = entries.map(item => ({
+    updateOne: {
+      filter: { conceptId: item.conceptId },
+      update: { $set: { conceptId: item.conceptId, embedding: item.embedding } },
+      upsert: true,
+    },
+  }));
+
+  await ConceptEmbeddingModel.bulkWrite(operations);
 }
 
-export function getConceptEmbedding(conceptId: string): ConceptEmbedding | null {
-  const db = getDatabase();
-  const row = db.prepare(
-    'SELECT concept_id, embedding FROM concept_embeddings WHERE concept_id = ?'
-  ).get(conceptId) as any;
-
+export async function getConceptEmbedding(conceptId: string): Promise<ConceptEmbedding | null> {
+  await connectDB();
+  const row = (await ConceptEmbeddingModel.findOne({ conceptId }).lean()) as any;
   if (!row) return null;
 
   return {
-    conceptId: row.concept_id,
-    embedding: JSON.parse(row.embedding),
+    conceptId: row.conceptId,
+    embedding: row.embedding,
   };
 }
 
-export function getAllConceptEmbeddings(): ConceptEmbedding[] {
-  const db = getDatabase();
-  const rows = db.prepare('SELECT concept_id, embedding FROM concept_embeddings').all() as any[];
+export async function getAllConceptEmbeddings(): Promise<ConceptEmbedding[]> {
+  await connectDB();
+  const rows = (await ConceptEmbeddingModel.find().lean()) as any[];
   return rows.map(r => ({
-    conceptId: r.concept_id,
-    embedding: JSON.parse(r.embedding),
+    conceptId: r.conceptId,
+    embedding: r.embedding,
   }));
 }

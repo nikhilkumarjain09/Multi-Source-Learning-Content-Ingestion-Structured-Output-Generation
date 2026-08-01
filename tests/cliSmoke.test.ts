@@ -17,39 +17,44 @@ async function runCliEndToEndSmokeTest() {
   const txtPath = 'seed-data/transcripts/machine_learning_intro.txt';
   const pdfPath = 'seed-data/pdfs/neural_networks.pdf';
 
-  if (!hasApiKey) {
-    console.log(`\nNote: ${CONFIG.LLM_PROVIDER.toUpperCase()} API key not configured. Testing pipeline error handling...`);
-    try {
-      await runIngestionPipeline(txtPath);
-      throw new Error('Expected pipeline to fail when API key is missing');
-    } catch (err: any) {
-      if (err.message.includes('API Key is missing')) {
-        console.log('Pipeline error handling verified: Clear human-readable error reported when API key missing.');
-      } else {
-        throw err;
+  try {
+    if (!hasApiKey) {
+      console.log(`\nNote: ${CONFIG.LLM_PROVIDER.toUpperCase()} API key not configured. Testing pipeline error handling...`);
+      try {
+        await runIngestionPipeline(txtPath);
+        throw new Error('Expected pipeline to fail when API key is missing');
+      } catch (err: any) {
+        if (err.message.includes('API Key is missing')) {
+          console.log('Pipeline error handling verified: Clear human-readable error reported when API key missing.');
+        } else {
+          throw err;
+        }
       }
+      console.log('\nCLI End-to-End Smoke Test (Offline Mode) PASSED!');
+      return;
     }
-    console.log('\nCLI End-to-End Smoke Test (Offline Mode) PASSED!');
-    return;
+
+    // 1. Ingest Seed Transcript
+    console.log(`\n--- 1. Ingesting Transcript Seed File: ${txtPath} ---`);
+    const txtResult = await runIngestionPipeline(txtPath);
+    console.log('Transcript Pipeline Result:', {
+      docId: txtResult.document.id,
+      concepts: txtResult.extraction.concepts.length,
+    });
+
+    // 2. Ingest Seed PDF
+    console.log(`\n--- 2. Ingesting PDF Seed File: ${pdfPath} ---`);
+    const pdfResult = await runIngestionPipeline(pdfPath);
+    console.log('PDF Pipeline Result:', {
+      docId: pdfResult.document.id,
+      concepts: pdfResult.extraction.concepts.length,
+    });
+
+    console.log('\nCLI End-to-End Smoke Test (Live API Mode) PASSED Successfully!');
+  } finally {
+    const { disconnectDB } = await import('../src/storage/db');
+    await disconnectDB();
   }
-
-  // 1. Ingest Seed Transcript
-  console.log(`\n--- 1. Ingesting Transcript Seed File: ${txtPath} ---`);
-  const txtResult = await runIngestionPipeline(txtPath);
-  console.log('Transcript Pipeline Result:', {
-    docId: txtResult.document.id,
-    concepts: txtResult.extraction.concepts.length,
-  });
-
-  // 2. Ingest Seed PDF
-  console.log(`\n--- 2. Ingesting PDF Seed File: ${pdfPath} ---`);
-  const pdfResult = await runIngestionPipeline(pdfPath);
-  console.log('PDF Pipeline Result:', {
-    docId: pdfResult.document.id,
-    concepts: pdfResult.extraction.concepts.length,
-  });
-
-  console.log('\nCLI End-to-End Smoke Test (Live API Mode) PASSED Successfully!');
 }
 
 runCliEndToEndSmokeTest().catch(err => {

@@ -33,7 +33,7 @@ export interface IngestionPipelineResult {
  * Cross-document concept deduplication:
  * When a newly extracted concept matches an existing concept in the database (by canonical name),
  * the existing concept_id is reused and the new document is linked via the concept_documents
- * junction table, rather than inserting a duplicate concept row.
+ * junction table / documentIds list, rather than inserting a duplicate concept row.
  */
 export async function runIngestionPipeline(filePath: string): Promise<IngestionPipelineResult> {
   if (!filePath) {
@@ -46,9 +46,9 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
   const flashcards = generateFlashcardsFromConcepts(extractionResult.concepts);
   const graph = exportConceptGraph(extractionResult.concepts, extractionResult.relationships);
 
-  // --- SQLite Storage Persistence Layer ---
+  // --- MongoDB Storage Persistence Layer ---
   // 1. Save document
-  saveDocument(normalizedDoc);
+  await saveDocument(normalizedDoc);
 
   // 2. Map & save concepts with cross-document deduplication
   const conceptMap = new Map<string, string>(); // canonical name -> concept id
@@ -58,16 +58,16 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
     const canonicalName = c.name.trim().toLowerCase();
 
     // Check if a concept with this canonical name already exists in the database
-    const existingConcept = findConceptByCanonicalName(canonicalName);
+    const existingConcept = await findConceptByCanonicalName(canonicalName);
 
     if (existingConcept) {
-      // Reuse existing concept_id; link it to the new document via junction table
+      // Reuse existing concept_id; link it to the new document
       conceptMap.set(canonicalName, existingConcept.id);
-      linkConceptToDocument(existingConcept.id, normalizedDoc.id);
+      await linkConceptToDocument(existingConcept.id, normalizedDoc.id);
 
       // Upgrade description if the new one is more detailed
       if (c.description.trim().length > (existingConcept.description || '').length) {
-        updateConceptDescription(existingConcept.id, c.description.trim());
+        await updateConceptDescription(existingConcept.id, c.description.trim());
       }
     } else {
       // New concept: create a fresh row and link to this document
@@ -84,12 +84,12 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
 
   // Persist only genuinely new concept rows
   if (newConcepts.length > 0) {
-    saveConcepts(newConcepts);
+    await saveConcepts(newConcepts);
   }
 
-  // Link all concepts (new and existing) to this document via junction table
+  // Link all concepts (new and existing) to this document
   for (const [, conceptId] of conceptMap) {
-    linkConceptToDocument(conceptId, normalizedDoc.id);
+    await linkConceptToDocument(conceptId, normalizedDoc.id);
   }
 
   // 3. Map & save relationships
@@ -108,7 +108,7 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
     }
   }
   if (relationshipEntities.length > 0) {
-    saveRelationships(relationshipEntities);
+    await saveRelationships(relationshipEntities);
   }
 
   // 4. Map & save flashcards
@@ -123,12 +123,12 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
     };
   });
   if (flashcardEntities.length > 0) {
-    saveFlashcards(flashcardEntities);
+    await saveFlashcards(flashcardEntities);
   }
 
   // 5. Save summary
   if (extractionResult.summary) {
-    saveSummary({
+    await saveSummary({
       id: uuidv4(),
       documentId: normalizedDoc.id,
       summaryText: extractionResult.summary,
@@ -146,7 +146,7 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
   }).filter((e): e is { conceptId: string; embedding: number[] } => e !== null);
 
   if (embeddingEntries.length > 0) {
-    saveConceptEmbeddings(embeddingEntries);
+    await saveConceptEmbeddings(embeddingEntries);
   }
 
   return {

@@ -3,60 +3,46 @@
 > Re-read REQUIREMENTS.md and SETTINGS.md before implementing anything in
 > this document. This file defines module boundaries — do not cross them
 > even under time pressure; crossing them is what makes stretch features
-> cheap to implement and maintain.
+> expensive later.
 
 ---
 
 ## 1. Pipeline Overview
 
-The system follows a strict, unidirectional layer architecture. Each layer communicates exclusively with its direct neighbors via typed TypeScript interfaces. No layer bypasses its adjacent layer or couples directly to non-neighboring internals.
-
-```mermaid
-graph TD
-    subgraph Ingestion ["1. Ingestion Layer"]
-        A[Raw Input File PDF / TXT / VTT / Video] --> B[Parser Registry]
-        B --> C[PDF / Text / Video Parsers]
-    end
-
-    subgraph Normalization ["2. Normalization Layer"]
-        C --> D[Canonical SourceDocument]
-        D --> E[Language Detection]
-    end
-
-    subgraph Extraction ["3. Extraction Layer"]
-        E --> F[Token Chunking]
-        F --> G[LLM Provider Groq / NVIDIA / Anthropic]
-        G --> H[Second-Pass Multi-Chunk Reconciliation]
-    end
-
-    subgraph Validation ["4. Validation & Structuring Layer"]
-        H --> I[Zod Schema Validator]
-        I -- On Failure --> J[Repair Retry Re-prompt]
-        J --> I
-    end
-
-    subgraph Storage ["5. Storage Layer"]
-        I --> K[SQLite Repositories Document, Concept, Rel, Flashcard, Summary, Embeddings]
-    end
-
-    subgraph Retrieval ["6. Retrieval Layer"]
-        K --> L[Retrieval Engine Exact, Substring & Semantic Cosine Search]
-    end
-
-    subgraph Presentation ["7. Presentation Layer"]
-        L --> M[Commander CLI Entrypoint]
-        L --> N[Express Server & REST API]
-        N --> O[React Dark Theme Visualizer & Graph]
-    end
 ```
+Ingestion Layer
+      |
+      v
+Normalization Layer
+      |
+      v
+Extraction Layer (LLM)
+      |
+      v
+Validation/Structuring Layer
+      |
+      v
+Storage Layer
+      |
+      v
+Retrieval Layer
+      |
+      v
+Presentation Layer (CLI + Web UI)
+```
+
+Each layer only talks to the layer directly adjacent to it, through a
+defined TypeScript interface/type. No layer reaches "up" or "sideways"
+past its neighbor.
 
 ---
 
 ## 2. Layer Responsibilities
 
 ### 2.1 Ingestion Layer (`src/ingestion/`)
-- Responsible ONLY for turning a file on disk into raw extracted text + basic metadata (filename, sourceType, pageCount/fileSize if applicable).
-- Implements the extensible plugin pattern:
+- Responsible ONLY for turning a file on disk into raw extracted text +
+  basic metadata (filename, sourceType, pageCount if applicable).
+- Implements the plugin pattern:
 
 ```ts
 interface Parser {
@@ -65,8 +51,11 @@ interface Parser {
 }
 ```
 
-- `registry.ts` holds an array of registered parsers. The orchestrator asks the registry "who supports this file?" and contains zero format-specific logic.
-- Parsers: `pdfParser.ts`, `textTranscriptParser.ts`, `videoParser.ts` (supporting `.mp4`, `.mp3`, `.vtt`, `.srt`).
+- `registry.ts` holds an array of registered parsers. The orchestrator
+  asks the registry "who supports this file?" and never contains
+  format-specific logic itself.
+- MVP parsers: `pdfParser.ts`, `textTranscriptParser.ts`.
+- Adding video/audio later = one new `videoParser.ts` + one registry line.
 
 ### 2.2 Normalization Layer (`src/normalization/`)
 - Converts any parser's raw output into the single canonical shape:
@@ -82,13 +71,22 @@ interface SourceDocument {
 }
 ```
 
-- Performs early non-English script detection (`src/ingestion/language.ts`), rejecting unsupported non-Latin documents with clear typed errors before pipeline execution.
+- This is the only shape the rest of the pipeline ever sees — ingestion
+  format differences stop here.
 
 ### 2.3 Extraction Layer (`src/extraction/`)
-- Takes a `SourceDocument`, chunks text if needed (token/character threshold based), and calls the LLM via the provider abstraction with a strict schema-constrained prompt.
-- Prompt templates live in `src/extraction/prompts/` as separate files.
-- **LLM provider abstraction** (`src/extraction/providers/`): `extract.ts` depends only on the `LLMProvider` interface. `providers/index.ts` selects between `groqProvider.ts` (default) and `nvidiaProvider.ts` based on `config.llmProvider`.
-- **Multi-Chunk Reconciliation** (`mergeChunks.ts`): Performs a second-pass LLM prompt call when input is multi-chunk, consolidating duplicate or synonymous concepts across chunk boundaries.
+- Takes a `SourceDocument`, chunks text if needed (token-threshold based),
+  and calls the LLM (via the provider abstraction below) with a strict
+  schema-constrained prompt.
+- Prompt templates live in `src/extraction/prompts/` as separate files,
+  not inline strings in logic files — makes prompt iteration low-risk.
+- **LLM provider abstraction** (`src/extraction/providers/`): `extract.ts`
+  depends only on the `LLMProvider` interface defined in SETTINGS.md
+  section 7 — it never imports a vendor SDK directly. `providers/index.ts`
+  selects between `groqProvider.ts` (default) and `nvidiaProvider.ts` based
+  on `config.llmProvider`. Switching providers is a `.env` change
+  (`LLM_PROVIDER=groq` or `LLM_PROVIDER=nvidia`), not a code change.
+- Output target schema (validated via zod in the next layer):
 
 ```ts
 interface ExtractionResult {
@@ -98,28 +96,48 @@ interface ExtractionResult {
 }
 ```
 
+- Chunk merge logic (dedupe by normalized concept name) lives here too,
+  isolated in `mergeChunks.ts`.
+
 ### 2.4 Validation/Structuring Layer (`src/validation/`)
 - Validates raw LLM JSON output against the `ExtractionResult` zod schema.
-- On failure: triggers ONE repair retry (re-prompt with the error + original output asking for corrected JSON), per REQUIREMENTS.md FR2.3.
-- On second failure: raises a typed `ExtractionValidationError` — never returns silent partial data.
+- On failure: triggers ONE repair retry (re-prompt with the error + original
+  output asking for a corrected JSON), per REQUIREMENTS.md FR2.3.
+- On second failure: raises a clear, typed error — never returns a silently
+  empty/partial result without flagging it.
 
 ### 2.5 Storage Layer (`src/storage/`)
-- Thin repository pattern over SQLite. One repository file per entity:
-  `documentRepository.ts`, `conceptRepository.ts`, `flashcardRepository.ts`,
-  `relationshipRepository.ts`, `summaryRepository.ts`, `embeddingRepository.ts`.
-- Implements cross-document concept deduplication via `canonical_name` matching and the `concept_documents` junction table.
-- No raw SQL outside repository files.
+- Thin repository pattern over MongoDB (via Mongoose). One repository file
+  per entity: `documentRepository.ts`, `conceptRepository.ts`,
+  `flashcardRepository.ts`, `relationshipRepository.ts`,
+  `summaryRepository.ts`.
+- No raw Mongoose queries outside repository files — all other layers call
+  repository functions only. Repository functions return plain typed
+  objects (not raw Mongoose documents), keeping every other layer
+  decoupled from Mongoose internals.
+- **Serverless-safe connection handling (`db.ts`):** because the web
+  app/API deploys to Vercel, `db.ts` must cache the Mongoose connection on
+  the Node.js global object and reuse it across warm invocations, rather
+  than calling `mongoose.connect()` on every request. Opening a fresh
+  connection per invocation is the single most common cause of Mongo
+  connection-limit errors on serverless platforms. The CLI, which runs as
+  a normal long-lived local process, can use a simpler connect-once-at-
+  startup pattern — both paths go through the same `db.ts` module so
+  repository code never needs to know which context it's running in.
 
 ### 2.6 Retrieval Layer (`src/retrieval/`)
-- `getArtifactsByTopic(topicName)` — multi-stage retrieval:
-  1. Exact match on stored concept name.
-  2. Case-insensitive substring match fallback.
-  3. Semantic vector search (nearest-embedding cosine similarity) fallback.
-- Aggregates artifacts (concepts, flashcards, graph nodes/edges, summaries) across all documents linked to the concept.
+- `getArtifactsByTopic(topicName)` — fuzzy/exact match against stored
+  concept names, returns associated flashcards, summary, and graph data.
+- Isolated from storage internals — presentation layer never queries
+  SQLite directly, only through this layer.
 
 ### 2.7 Presentation Layer
-- **CLI** (`src/cli/`): Commander-based CLI (`ingest`, `list-topics`, `export`, `learning-path`). Operates independently of the web server for demo safety.
-- **Web UI** (`web/`): Express REST API server (`web/server/routes.ts`) exposing JSON endpoints, paired with a React frontend (`web/client/`) providing dark mode topic browsing, interactive SVG concept graph visualization (zoom, pan, click-to-expand), ordered learning paths, and flashcard cards.
+- **CLI** (`src/cli/`): commands map 1:1 to pipeline entry points. The CLI
+  must be able to run the entire pipeline with zero dependency on the web
+  server being up — this is the demo-safety fallback (NFR2).
+- **Web UI** (`web/`): thin Express API (`web/server/`) exposing the same
+  underlying pipeline/retrieval functions, plus a React frontend
+  (`web/client/`) for upload + concept graph visualization.
 
 ---
 
@@ -131,9 +149,7 @@ project-root/
 │   ├── ingestion/
 │   │   ├── parsers/
 │   │   │   ├── pdfParser.ts
-│   │   │   ├── textTranscriptParser.ts
-│   │   │   └── videoParser.ts
-│   │   ├── language.ts
+│   │   │   └── textTranscriptParser.ts
 │   │   ├── registry.ts
 │   │   └── types.ts
 │   ├── normalization/
@@ -144,7 +160,6 @@ project-root/
 │   │   ├── providers/
 │   │   │   ├── groqProvider.ts
 │   │   │   ├── nvidiaProvider.ts
-│   │   │   ├── types.ts
 │   │   │   └── index.ts
 │   │   ├── extract.ts
 │   │   ├── chunk.ts
@@ -158,22 +173,18 @@ project-root/
 │   │   ├── conceptRepository.ts
 │   │   ├── relationshipRepository.ts
 │   │   ├── flashcardRepository.ts
-│   │   ├── summaryRepository.ts
-│   │   └── embeddingRepository.ts
+│   │   └── summaryRepository.ts
 │   ├── retrieval/
-│   │   ├── getArtifactsByTopic.ts
-│   │   └── embeddings.ts
+│   │   └── getArtifactsByTopic.ts
 │   ├── outputs/
-│   │   ├── flashcardExport.ts
-│   │   ├── graphExport.ts
-│   │   └── learningPath.ts
+│   │   ├── flashcardExport.ts   # json + csv
+│   │   └── graphExport.ts
 │   ├── cli/
 │   │   ├── index.ts
 │   │   └── commands/
 │   │       ├── ingest.ts
 │   │       ├── listTopics.ts
-│   │       ├── export.ts
-│   │       └── learningPath.ts
+│   │       └── export.ts
 │   └── shared/
 │       ├── config.ts
 │       └── types.ts
@@ -183,24 +194,14 @@ project-root/
 │   └── client/
 │       ├── src/
 │       │   ├── components/
-│       │   │   ├── ConceptGraph.tsx
-│       │   │   ├── FlashcardList.tsx
-│       │   │   ├── LearningPathPanel.tsx
-│       │   │   ├── SummaryPanel.tsx
-│       │   │   ├── TopicBrowser.tsx
-│       │   │   └── UploadControl.tsx
 │       │   └── App.tsx
-│       ├── index.html
-│       └── vite.config.ts
-├── api/
-│   └── index.ts
+│       └── index.html
 ├── seed-data/
 │   ├── pdfs/
 │   └── transcripts/
-├── reports/
-│   └── PROJECT_DOCUMENTATION.pdf
+├── docs/
+│   └── (generated PDF documentation goes here)
 ├── tests/
-├── vercel.json
 ├── .env.example
 ├── README.md
 └── package.json
@@ -208,102 +209,15 @@ project-root/
 
 ---
 
-## 4. Running the Project
+## 4. Scaling Story (for interview "how would you scale this" discussion)
 
-Follow this precise order of operations to run the project locally in development mode:
-
-### 1. Installation & Environment Configuration
-```bash
-# Clone the repository
-git clone https://github.com/nikhilkumarjain09/Multi-Source-Learning-Content-Ingestion-Structured-Output-Generation.git
-cd Multi-Source-Learning-Content-Ingestion-Structured-Output-Generation
-
-# Install backend & root dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env
-```
-Edit `.env` to supply your API credentials:
-```ini
-LLM_PROVIDER=groq
-GROQ_API_KEY=gsk_your_actual_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
-```
-
-### 2. Database Initialization
-Initialize the SQLite schema (tables, foreign key constraints, indexes, junction tables, and embedding stores):
-```bash
-npm run db:init
-```
-
-### 3. Run CLI Pipeline (Demo / Ingestion Mode)
-Ingest seed data files using the standalone CLI entrypoint:
-```bash
-# Ingest PDF seed file
-npm run cli -- ingest seed-data/pdfs/neural_networks.pdf
-
-# Ingest transcript seed file
-npm run cli -- ingest seed-data/transcripts/machine_learning_intro.txt
-
-# List stored topics
-npm run cli -- list-topics
-
-# Export flashcards to CSV
-npm run cli -- export "Artificial Intelligence" -f csv
-
-# Generate topological learning path
-npm run cli -- learning-path "Artificial Intelligence"
-```
-
-### 4. Run Web Application Server
-Build project bundles and launch the integrated Express REST API + Web UI server:
-```bash
-# Compile TypeScript code
-npm run build
-
-# Build React client frontend bundle
-npx vite build --prefix web/client
-
-# Launch web server (port 3000 by default)
-npm run server
-```
-Open **`http://localhost:3000`** in your web browser.
-
-### What a Successful End-to-End Run Looks Like:
-1. **CLI**: Running `ingest` displays progress messages (`Parsing file...`, `Extracting concepts...`, `Saving to SQLite database...`) and prints a clean summary table containing the document ID, extracted concepts, relationship counts, and flashcard counts with exit code `0`.
-2. **Web UI**: Uploading a file displays an inline loading spinner. Upon completion, the screen populates with the document summary, an interactive SVG concept graph with color-coded relationship edges, an ordered topological learning path, and exportable flashcard cards.
-
----
-
-## 5. Scaling & Future Implementation
-
-The system's modular architecture is designed to scale across multiple dimensions without refactoring existing domain logic:
-
-### 1. Storage Scaling (SQLite -> PostgreSQL)
-Because all database interactions are encapsulated behind repository interfaces (`conceptRepository.ts`, `documentRepository.ts`, etc.), swapping SQLite for PostgreSQL or Amazon Aurora requires zero changes to the ingestion, extraction, retrieval, or presentation layers. Only the SQL statements inside `src/storage/*.ts` need to be swapped.
-
-### 2. Ingestion Job Queue (Async Processing)
-For large-scale batch processing, file uploads can produce jobs pushed to a Redis-backed queue (e.g., BullMQ or RabbitMQ). Worker processes pull jobs, invoke `runIngestionPipeline()`, and push notifications via WebSockets or Webhooks upon completion, preventing web server request thread starvation.
-
-### 3. Semantic Vector Search (Implemented in Stretch S4)
-Topic retrieval uses a 128-dimensional local n-gram TF-IDF vector embedding engine stored in `concept_embeddings`. When exact or substring concept matching returns no results, cosine similarity scoring evaluates query vectors against all stored concept embeddings. For production scale (millions of concepts), this layer can transition to PGVector or Qdrant without altering `getArtifactsByTopic()`'s signature.
-
-### 4. Parallelized Extraction & Chunk Execution
-For large documents divided into $N$ text chunks, chunk extraction calls (`extractConceptsFromChunk`) can execute concurrently via `Promise.all()` or a bounded worker pool. The second-pass `reconcileMultiChunkExtractions` step then merges the array of chunk extraction results into a unified result.
-
-### 5. Caching Strategy
-A Redis LRU cache can wrap `getArtifactsByTopic(topicName)` and `getAllConceptNames()`. Ingest operations invalidate cached keys matching affected concept names, delivering sub-millisecond retrieval performance for frequent web UI traffic.
-
----
-
-## 6. Internationalization (i18n)
-
-### 1. Document Input & Extraction i18n
-- **Script Detection**: Non-English script detection (`src/ingestion/language.ts`) flags non-Latin character distributions and returns a clear, typed `Unsupported language` error.
-- **Prompt Localisation**: To support non-English documents in future versions, prompt templates (`src/extraction/prompts/`) can accept a target language parameter (e.g., `"Extract concepts in French and provide English canonical translations"`).
-- **Cross-Lingual Concept Deduplication**: The concept repository can store a normalized `canonical_name_en` alongside localized concept names, allowing cross-document deduplication across documents written in different languages.
-
-### 2. Web UI Translation Architecture
-- **Dictionary Externalization**: UI strings in React components (`UploadControl.tsx`, `ConceptGraph.tsx`, `LearningPathPanel.tsx`) can be extracted into JSON translation catalogs (e.g., `locales/en.json`, `locales/es.json`).
-- **i18n Context Provider**: A lightweight React i18n context or `react-i18next` hook can supply string translation functions (`t('graph.legend.prerequisite')`), defaulting to English with zero runtime overhead.
+- Ingestion could move to a queue (e.g., a job per uploaded file) so large
+  batch uploads don't block a request thread.
+- Extraction is the expensive step — could be parallelized per-chunk with
+  a worker pool, with results merged asynchronously.
+- Retrieval could move from exact/fuzzy match to embedding-based semantic
+  search (vector DB) without changing the retrieval layer's external
+  interface — only its internal implementation.
+- SQLite could be swapped for Postgres behind the same repository
+  interfaces with no changes required in any other layer — this is the
+  direct payoff of the repository pattern.

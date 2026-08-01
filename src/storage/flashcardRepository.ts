@@ -1,31 +1,40 @@
 import { Flashcard } from '../shared/types';
-import { getDatabase } from './db';
+import { connectDB } from './db';
+import { FlashcardModel } from './models';
 
-export function saveFlashcards(flashcards: Flashcard[]): void {
+export async function saveFlashcards(flashcards: Flashcard[]): Promise<void> {
   if (flashcards.length === 0) return;
-  const db = getDatabase();
-  const stmt = db.prepare(`
-    INSERT INTO flashcards (id, concept_id, question, answer)
-    VALUES (?, ?, ?, ?)
-  `);
-  const insertMany = db.transaction((items: Flashcard[]) => {
-    for (const item of items) {
-      stmt.run(item.id, item.conceptId, item.question, item.answer);
-    }
-  });
-  insertMany(flashcards);
+  await connectDB();
+
+  const operations = flashcards.map(item => ({
+    updateOne: {
+      filter: { id: item.id },
+      update: {
+        $set: {
+          id: item.id,
+          conceptId: item.conceptId,
+          question: item.question,
+          answer: item.answer,
+        },
+      },
+      upsert: true,
+    },
+  }));
+
+  await FlashcardModel.bulkWrite(operations);
 }
 
-export function getFlashcardsByConceptIds(conceptIds: string[]): Flashcard[] {
+export async function getFlashcardsByConceptIds(conceptIds: string[]): Promise<Flashcard[]> {
   if (conceptIds.length === 0) return [];
-  const db = getDatabase();
-  const placeholders = conceptIds.map(() => '?').join(',');
-  const stmt = db.prepare(`SELECT * FROM flashcards WHERE concept_id IN (${placeholders})`);
-  const rows = stmt.all(...conceptIds) as any[];
+  await connectDB();
+
+  const rows = (await FlashcardModel.find({
+    conceptId: { $in: conceptIds },
+  }).lean()) as any[];
 
   return rows.map(row => ({
     id: row.id,
-    conceptId: row.concept_id,
+    conceptId: row.conceptId,
     question: row.question,
     answer: row.answer,
   }));

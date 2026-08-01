@@ -1,15 +1,8 @@
-# Introduction to Machine Learning
+# Machine Learning Fundamentals
+Machine Learning is a branch of artificial intelligence focused on building applications that learn from data and improve accuracy over time without being explicitly programmed.
 
-Machine Learning is a branch of artificial intelligence focused on building applications that learn from data and improve their accuracy over time without being explicitly programmed.
+Supervised Learning algorithms train on labeled datasets. Common algorithms include Linear Regression, Logistic Regression, Decision Trees, and Support Vector Machines.
 
-## Supervised Learning
-Supervised Learning is a category of machine learning where algorithms are trained on labeled datasets. The algorithm learns a mapping function from input variables to output variables.
+Unsupervised Learning finds hidden patterns in unlabeled data. Clustering algorithms such as K-Means and Hierarchical Clustering group similar data points together.
 
-### Linear Regression
-Linear Regression is a fundamental supervised learning algorithm used to predict continuous numerical values by fitting a linear equation to observed data points.
-
-## Unsupervised Learning
-Unsupervised Learning involves training models on unlabeled data. The goal is to discover underlying patterns, groupings, or representations within the dataset.
-
-### Clustering
-Clustering algorithms group data points with similar characteristics into distinct clusters without prior training labels.
+Model Evaluation metrics include Precision, Recall, F1-Score, and ROC-AUC Curves. Overfitting occurs when a model learns noise instead of signal, which can be mitigated using Regularization techniques.

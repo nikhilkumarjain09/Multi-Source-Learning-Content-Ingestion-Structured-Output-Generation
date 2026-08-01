@@ -18,11 +18,11 @@ export function registerExportCommand(program: Command): void {
           process.exit(1);
         }
 
-        const artifacts = getArtifactsByTopic(topic);
+        const artifacts = await getArtifactsByTopic(topic);
         if (!artifacts || artifacts.flashcards.length === 0) {
           console.error(`Error: Topic not found or no flashcards available for topic "${topic}".`);
           
-          const availableTopics = getAllConceptNames();
+          const availableTopics = await getAllConceptNames();
           if (availableTopics.length > 0) {
             console.error('\nAvailable stored topics:');
             availableTopics.forEach(t => console.error(`  - ${t}`));

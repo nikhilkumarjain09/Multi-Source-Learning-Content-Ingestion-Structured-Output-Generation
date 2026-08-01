@@ -32,7 +32,7 @@ export function registerIngestCommand(program: Command): void {
         console.log(`Graph Nodes:         ${result.graph.nodes.length}`);
         console.log(`Graph Edges:         ${result.graph.edges.length}`);
         console.log(`Processing Time:     ${durationSec}s`);
-        console.log('Database Persistence: Saved to SQLite database.');
+        console.log('Database Persistence: Saved to MongoDB database.');
 
         if (result.summary) {
           console.log('\n--- Document Summary ---');

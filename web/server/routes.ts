@@ -83,9 +83,9 @@ app.post('/api/ingest', upload.single('file'), async (req, res) => {
  * GET /api/topics
  * Returns list of distinct stored topics/concepts.
  */
-app.get('/api/topics', (req, res) => {
+app.get('/api/topics', async (req, res) => {
   try {
-    const topics = getAllConceptNames();
+    const topics = await getAllConceptNames();
     res.status(200).json({ topics });
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Failed to fetch topics.' });
@@ -96,10 +96,10 @@ app.get('/api/topics', (req, res) => {
  * GET /api/topics/:topic
  * Retrieves flashcards, summary, scoped graph data, and ordered learning path for a specific topic.
  */
-app.get('/api/topics/:topic', (req, res) => {
+app.get('/api/topics/:topic', async (req, res) => {
   try {
     const topicName = req.params.topic;
-    const artifacts = getArtifactsByTopic(topicName);
+    const artifacts = await getArtifactsByTopic(topicName);
 
     if (!artifacts) {
       res.status(404).json({ error: `Topic not found: "${topicName}"` });

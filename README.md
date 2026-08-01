@@ -1,6 +1,6 @@
 # Multi-Source Learning Content Ingestion & Structured Output Generation
 
-A robust, production-grade system designed to ingest educational content (PDFs, plain-text transcripts, VTT subtitle tracks, video/audio transcripts), normalize input text, extract key learning concepts and directed relationships via LLM provider abstraction, and generate structured outputs (flashcards, summaries, topological learning paths, and interactive SVG concept graphs) backed by SQLite storage and vector embedding retrieval.
+A robust, production-grade system designed to ingest educational content (PDFs, plain-text transcripts, VTT subtitle tracks, video/audio transcripts), normalize input text, extract key learning concepts and directed relationships via LLM provider abstraction, and generate structured outputs (flashcards, summaries, topological learning paths, and interactive SVG concept graphs) backed by MongoDB (Mongoose) storage and vector embedding retrieval.
 
 ---
 
@@ -33,7 +33,7 @@ graph TD
     end
 
     subgraph Storage ["5. Storage Layer"]
-        I --> K[SQLite Repositories Document, Concept, Rel, Flashcard, Summary, Embeddings]
+        I --> K[MongoDB Repositories Document, Concept, Rel, Flashcard, Summary, Embeddings]
     end
 
     subgraph Retrieval ["6. Retrieval Layer"]
@@ -56,7 +56,7 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
 - **Extensible Plugin-Based Parser Registry**: Supports multiple file types (PDF, Plain Text, Markdown, VTT Subtitles, Audio/Video sidecar transcripts). Adding new format support requires only implementing the `Parser` interface and registering it—zero changes to orchestrator or downstream layers.
 - **Provider-Agnostic LLM Abstraction**: Swappable between Groq API (`llama-3.3-70b-versatile`), NVIDIA NIM (`meta/llama-3.3-70b-instruct`), and Anthropic Claude via `.env` configuration.
 - **Robust Zod Schema Validation & Repair Retry**: Validates raw LLM JSON responses against strict schemas. Automatically triggers a targeted repair retry prompt upon malformed JSON before raising typed errors—preventing silent drops.
-- **Cross-Chunk & Cross-Document Deduplication**: Performs second-pass multi-chunk LLM reconciliation for long documents and cross-document concept deduplication via lowercased `canonical_name` matching with a `concept_documents` junction table.
+- **Cross-Chunk & Cross-Document Deduplication**: Performs second-pass multi-chunk LLM reconciliation for long documents and cross-document concept deduplication via lowercased `canonical_name` matching.
 - **Semantic Vector Search Fallback**: Generates 128-dimensional n-gram TF-IDF embeddings saved in `concept_embeddings`, enabling cosine-similarity nearest-neighbor retrieval when exact string match returns no results.
 - **Topological Learning Path Generation**: Computes optimal step-by-step learning sequences from prerequisite concept relationship edges using Kahn's topological sort algorithm.
 - **Interactive SVG Knowledge Graph**: Web UI features an interactive SVG canvas with smooth pan/zoom, node click-to-expand detail panel, and color-coded relationship edge legends.
@@ -69,7 +69,7 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
 - **CLI Framework:** Commander
 - **Web Backend:** Express.js
 - **Web Frontend:** React + TypeScript (Dark Theme)
-- **Database:** SQLite (via `better-sqlite3` with foreign keys enabled)
+- **Database:** MongoDB (via `mongoose` with schema validation & indexes)
 - **Validation:** Zod
 - **PDF Parsing:** `pdf-parse`
 - **LLM Providers:** Groq API (`llama-3.3-70b-versatile`) & NVIDIA NIM API (`meta/llama-3.3-70b-instruct`)
@@ -82,6 +82,7 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
 ### Prerequisites
 - Node.js v18.0.0 or higher
 - npm v9.0.0 or higher
+- MongoDB instance running locally (`mongodb://localhost:27017`) or cloud URI (`MONGODB_URI`)
 
 ### Environment Setup
 
@@ -97,11 +98,13 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
    ```bash
    cp .env.example .env
    ```
-   Open `.env` and set your preferred LLM provider and API key:
+   Open `.env` and set your preferred LLM provider, API key, and MongoDB connection URI:
    ```env
    LLM_PROVIDER=groq
    GROQ_API_KEY=your_actual_groq_api_key_here
    GROQ_MODEL=llama-3.3-70b-versatile
+
+   MONGODB_URI=mongodb://localhost:27017/learning_ingestion
 
    # Alternative Provider: NVIDIA NIM
    # LLM_PROVIDER=nvidia
@@ -109,7 +112,7 @@ See [artifacts/ARCHITECTURE.md](artifacts/ARCHITECTURE.md) for full architectura
    # NVIDIA_MODEL=meta/llama-3.3-70b-instruct
    ```
 
-3. **Initialize SQLite Database:**
+3. **Verify MongoDB Connection:**
    ```bash
    npm run db:init
    ```

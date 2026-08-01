@@ -15,10 +15,10 @@ export function registerLearningPathCommand(program: Command): void {
           process.exit(1);
         }
 
-        const learningPath = generateLearningPathByTopic(topic);
+        const learningPath = await generateLearningPathByTopic(topic);
         if (!learningPath || learningPath.steps.length === 0) {
           console.error(`Error: Topic not found or no concept data available for topic "${topic}".`);
-          const availableTopics = getAllConceptNames();
+          const availableTopics = await getAllConceptNames();
           if (availableTopics.length > 0) {
             console.error('\nAvailable stored topics:');
             availableTopics.forEach(t => console.error(`  - ${t}`));

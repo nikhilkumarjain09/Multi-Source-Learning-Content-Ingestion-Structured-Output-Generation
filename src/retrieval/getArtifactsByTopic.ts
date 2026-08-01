@@ -46,32 +46,32 @@ const SEMANTIC_MAX_RESULTS = 5;
  * The external interface and return shape remain unchanged regardless of which
  * search strategy found the results.
  */
-export function getArtifactsByTopic(topicName: string): TopicArtifacts | null {
+export async function getArtifactsByTopic(topicName: string): Promise<TopicArtifacts | null> {
   if (!topicName || topicName.trim().length === 0) {
     return null;
   }
 
   // Strategy 1: exact/fuzzy string match
-  let matchedConcepts = searchConceptsByName(topicName);
+  let matchedConcepts = await searchConceptsByName(topicName);
 
   // Strategy 2: semantic embedding fallback
   if (matchedConcepts.length === 0) {
-    matchedConcepts = semanticConceptSearch(topicName);
+    matchedConcepts = await semanticConceptSearch(topicName);
   }
 
   if (matchedConcepts.length === 0) {
     return null;
   }
 
-  return buildTopicArtifacts(topicName, matchedConcepts);
+  return await buildTopicArtifacts(topicName, matchedConcepts);
 }
 
 /**
  * Searches for concepts by nearest-embedding cosine similarity.
  * Returns the top-N concepts above the similarity threshold.
  */
-function semanticConceptSearch(query: string): Concept[] {
-  const allEmbeddings = getAllConceptEmbeddings();
+async function semanticConceptSearch(query: string): Promise<Concept[]> {
+  const allEmbeddings = await getAllConceptEmbeddings();
   if (allEmbeddings.length === 0) return [];
 
   const queryText = conceptToEmbeddingText(query, query);
@@ -90,17 +90,17 @@ function semanticConceptSearch(query: string): Concept[] {
   if (scored.length === 0) return [];
 
   const conceptIds = scored.map(s => s.conceptId);
-  return getConceptsByIds(conceptIds);
+  return await getConceptsByIds(conceptIds);
 }
 
 /**
  * Builds the full TopicArtifacts response from a set of matched concepts.
  * Shared by both string-match and semantic-match paths.
  */
-function buildTopicArtifacts(topicName: string, matchedConcepts: Concept[]): TopicArtifacts {
+async function buildTopicArtifacts(topicName: string, matchedConcepts: Concept[]): Promise<TopicArtifacts> {
   const matchedConceptIds = matchedConcepts.map(c => c.id);
-  const flashcards = getFlashcardsByConceptIds(matchedConceptIds);
-  const relationships = getRelationshipsForConceptIds(matchedConceptIds);
+  const flashcards = await getFlashcardsByConceptIds(matchedConceptIds);
+  const relationships = await getRelationshipsForConceptIds(matchedConceptIds);
 
   // Collect neighbor concept IDs referenced in direct relationships
   const neighborConceptIds = new Set<string>();
@@ -110,7 +110,7 @@ function buildTopicArtifacts(topicName: string, matchedConcepts: Concept[]): Top
   }
 
   const allRelevantConceptIds = Array.from(new Set([...matchedConceptIds, ...Array.from(neighborConceptIds)]));
-  const allRelevantConcepts = getConceptsByIds(allRelevantConceptIds);
+  const allRelevantConcepts = await getConceptsByIds(allRelevantConceptIds);
   const conceptMap = new Map<string, Concept>();
   for (const c of allRelevantConcepts) {
     conceptMap.set(c.id, c);
@@ -133,19 +133,20 @@ function buildTopicArtifacts(topicName: string, matchedConcepts: Concept[]): Top
   }));
 
   // Aggregate summaries across ALL documents linked to matching concepts
-  // via both direct document_id and the concept_documents junction table
   const documentIds = new Set<string>();
   for (const concept of matchedConcepts) {
     documentIds.add(concept.documentId);
 
-    const linkedDocIds = getDocumentIdsForConcept(concept.id);
+    const linkedDocIds = await getDocumentIdsForConcept(concept.id);
     for (const docId of linkedDocIds) {
       documentIds.add(docId);
     }
   }
 
-  const summaryTexts = Array.from(documentIds)
-    .map(docId => getSummaryByDocumentId(docId))
+  const summaryPromises = Array.from(documentIds).map(docId => getSummaryByDocumentId(docId));
+  const summaries = await Promise.all(summaryPromises);
+
+  const summaryTexts = summaries
     .filter((s): s is Summary => s !== null && Boolean(s.summaryText))
     .map(s => s.summaryText);
 

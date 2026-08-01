@@ -1,37 +1,43 @@
 import { Relationship } from '../shared/types';
-import { getDatabase } from './db';
+import { connectDB } from './db';
+import { RelationshipModel } from './models';
 
 export { Relationship };
 
-export function saveRelationships(relationships: Relationship[]): void {
+export async function saveRelationships(relationships: Relationship[]): Promise<void> {
   if (relationships.length === 0) return;
-  const db = getDatabase();
-  const stmt = db.prepare(`
-    INSERT INTO relationships (id, from_concept_id, to_concept_id, type)
-    VALUES (?, ?, ?, ?)
-  `);
-  const insertMany = db.transaction((items: Relationship[]) => {
-    for (const item of items) {
-      stmt.run(item.id, item.fromConceptId, item.toConceptId, item.type);
-    }
-  });
-  insertMany(relationships);
+  await connectDB();
+
+  const operations = relationships.map(item => ({
+    updateOne: {
+      filter: { id: item.id },
+      update: {
+        $set: {
+          id: item.id,
+          fromConceptId: item.fromConceptId,
+          toConceptId: item.toConceptId,
+          type: item.type,
+        },
+      },
+      upsert: true,
+    },
+  }));
+
+  await RelationshipModel.bulkWrite(operations);
 }
 
-export function getRelationshipsForConceptIds(conceptIds: string[]): Relationship[] {
+export async function getRelationshipsForConceptIds(conceptIds: string[]): Promise<Relationship[]> {
   if (conceptIds.length === 0) return [];
-  const db = getDatabase();
-  const placeholders = conceptIds.map(() => '?').join(',');
-  const sql = `
-    SELECT * FROM relationships
-    WHERE from_concept_id IN (${placeholders}) OR to_concept_id IN (${placeholders})
-  `;
-  const rows = db.prepare(sql).all(...conceptIds, ...conceptIds) as any[];
+  await connectDB();
+
+  const rows = (await RelationshipModel.find({
+    $or: [{ fromConceptId: { $in: conceptIds } }, { toConceptId: { $in: conceptIds } }],
+  }).lean()) as any[];
 
   return rows.map(r => ({
     id: r.id,
-    fromConceptId: r.from_concept_id,
-    toConceptId: r.to_concept_id,
+    fromConceptId: r.fromConceptId,
+    toConceptId: r.toConceptId,
     type: r.type,
   }));
 }

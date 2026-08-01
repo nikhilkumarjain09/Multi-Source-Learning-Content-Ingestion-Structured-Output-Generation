@@ -11,7 +11,7 @@ export const CONFIG = {
   NVIDIA_MODEL: process.env.NVIDIA_MODEL || 'meta/llama-3.3-70b-instruct',
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
   ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022',
-  DATABASE_PATH: process.env.DATABASE_PATH || (process.env.VERCEL ? '/tmp/learning_ingestion.db' : path.resolve(process.cwd(), 'learning_ingestion.db')),
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/learning_ingestion',
   PORT: parseInt(process.env.PORT || '3000', 10),
   CHUNK: {
     MAX_TOKENS: 3000,

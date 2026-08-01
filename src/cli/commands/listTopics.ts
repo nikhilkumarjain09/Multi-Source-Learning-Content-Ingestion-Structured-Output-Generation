@@ -7,7 +7,7 @@ export function registerListTopicsCommand(program: Command): void {
     .description('List all distinct stored topics and concepts')
     .action(async () => {
       try {
-        const topics = getAllConceptNames();
+        const topics = await getAllConceptNames();
 
         if (topics.length === 0) {
           console.log('No topics currently stored in database.');

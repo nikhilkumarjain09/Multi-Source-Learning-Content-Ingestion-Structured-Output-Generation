@@ -1,24 +1,28 @@
 import { Summary } from '../shared/types';
-import { getDatabase } from './db';
+import { connectDB } from './db';
+import { SummaryModel } from './models';
 
-export function saveSummary(summary: Summary): void {
-  const db = getDatabase();
-  const stmt = db.prepare(`
-    INSERT INTO summaries (id, document_id, summary_text)
-    VALUES (?, ?, ?)
-  `);
-  stmt.run(summary.id, summary.documentId, summary.summaryText);
+export async function saveSummary(summary: Summary): Promise<void> {
+  await connectDB();
+  await SummaryModel.findOneAndUpdate(
+    { id: summary.id },
+    {
+      id: summary.id,
+      documentId: summary.documentId,
+      summaryText: summary.summaryText,
+    },
+    { upsert: true, new: true }
+  );
 }
 
-export function getSummaryByDocumentId(documentId: string): Summary | null {
-  const db = getDatabase();
-  const stmt = db.prepare('SELECT * FROM summaries WHERE document_id = ?');
-  const row = stmt.get(documentId) as any;
+export async function getSummaryByDocumentId(documentId: string): Promise<Summary | null> {
+  await connectDB();
+  const row = (await SummaryModel.findOne({ documentId }).lean()) as any;
   if (!row) return null;
 
   return {
     id: row.id,
-    documentId: row.document_id,
-    summaryText: row.summary_text,
+    documentId: row.documentId,
+    summaryText: row.summaryText,
   };
 }

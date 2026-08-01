@@ -1,0 +1,7 @@
+Web Application Architecture and Microservices
+
+Modern Web Development separates frontend user interfaces from backend application services.
+
+REST APIs expose HTTP endpoints using standard verbs (GET, POST, PUT, DELETE) and JSON payloads. Microservice Architecture decouples single monolithic applications into independent, scalable microservices communicating via asynchronous event buses.
+
+Frontend Frameworks such as React and Vue manage dynamic component rendering using Virtual DOM trees. Client-side state management coordinates application state across component hierarchies.
