@@ -4,7 +4,7 @@
   "description": "Multi-Source Learning Content Ingestion & Structured Output Generation",
   "main": "dist/cli/index.js",
   "scripts": {
-    "build": "node node_modules/typescript/lib/tsc.js && npx vite build web/client",
+    "build": "node node_modules/typescript/lib/tsc.js && node node_modules/vite/bin/vite.js build web/client",
     "cli": "node node_modules/tsx/dist/cli.mjs src/cli/index.ts",
     "server": "node node_modules/tsx/dist/cli.mjs web/server/routes.ts",
     "db:init": "node node_modules/tsx/dist/cli.mjs src/storage/db.ts",
@@ -34,8 +34,10 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "mongodb-memory-server": "^10.1.4",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
   }
 }

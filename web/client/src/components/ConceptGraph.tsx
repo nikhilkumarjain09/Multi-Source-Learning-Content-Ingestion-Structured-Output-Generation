@@ -61,6 +61,68 @@ export const ConceptGraph: React.FC<ConceptGraphProps> = ({ nodes, edges, flashc
     setSelectedNodeId(null);
   }, [nodes, edges]);
 
+  // --- Pan handlers (MUST BE TOP-LEVEL FOR REACT HOOK RULES) ---
+  const handleMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    if (e.button !== 0) return;
+    setIsPanning(true);
+    setPanStart({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    if (!isPanning) return;
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const scaleX = viewBox.w / rect.width;
+    const scaleY = viewBox.h / rect.height;
+    const dx = (e.clientX - panStart.x) * scaleX;
+    const dy = (e.clientY - panStart.y) * scaleY;
+    setViewBox(v => ({ ...v, x: v.x - dx, y: v.y - dy }));
+    setPanStart({ x: e.clientX, y: e.clientY });
+  }, [isPanning, panStart, viewBox]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
+  // --- Zoom handlers ---
+  const handleWheel = useCallback((e: React.WheelEvent<SVGSVGElement>) => {
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 1.1 : 0.9;
+    setViewBox(v => {
+      const newW = v.w * factor;
+      const newH = v.h * factor;
+      const dx = (v.w - newW) / 2;
+      const dy = (v.h - newH) / 2;
+      return { x: v.x + dx, y: v.y + dy, w: newW, h: newH };
+    });
+  }, []);
+
+  const zoomIn = () => {
+    setViewBox(v => {
+      const newW = v.w * 0.8;
+      const newH = v.h * 0.8;
+      return { x: v.x + (v.w - newW) / 2, y: v.y + (v.h - newH) / 2, w: newW, h: newH };
+    });
+  };
+
+  const zoomOut = () => {
+    setViewBox(v => {
+      const newW = v.w * 1.25;
+      const newH = v.h * 1.25;
+      return { x: v.x + (v.w - newW) / 2, y: v.y + (v.h - newH) / 2, w: newW, h: newH };
+    });
+  };
+
+  const resetView = () => {
+    setViewBox({ x: 0, y: 0, w: BASE_W, h: BASE_H });
+  };
+
+  const handleNodeClick = (nodeId: string) => {
+    const key = nodeId.toLowerCase();
+    setSelectedNodeId(prev => prev === key ? null : key);
+  };
+
   if (!nodes || nodes.length === 0) {
     return (
       <div style={{
@@ -113,69 +175,6 @@ export const ConceptGraph: React.FC<ConceptGraphProps> = ({ nodes, edges, flashc
       (f.conceptName || '').toLowerCase() === selectedNodeObj.label.toLowerCase()
     )
     : [];
-
-  // --- Pan handlers ---
-  const handleMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
-    if (e.button !== 0) return;
-    setIsPanning(true);
-    setPanStart({ x: e.clientX, y: e.clientY });
-  }, []);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
-    if (!isPanning) return;
-    const svg = svgRef.current;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const scaleX = viewBox.w / rect.width;
-    const scaleY = viewBox.h / rect.height;
-    const dx = (e.clientX - panStart.x) * scaleX;
-    const dy = (e.clientY - panStart.y) * scaleY;
-    setViewBox(v => ({ ...v, x: v.x - dx, y: v.y - dy }));
-    setPanStart({ x: e.clientX, y: e.clientY });
-  }, [isPanning, panStart, viewBox]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsPanning(false);
-  }, []);
-
-  // --- Zoom handlers ---
-  const handleWheel = useCallback((e: React.WheelEvent<SVGSVGElement>) => {
-    e.preventDefault();
-    const factor = e.deltaY > 0 ? 1.1 : 0.9;
-    setViewBox(v => {
-      const newW = v.w * factor;
-      const newH = v.h * factor;
-      // Zoom toward center of current view
-      const dx = (v.w - newW) / 2;
-      const dy = (v.h - newH) / 2;
-      return { x: v.x + dx, y: v.y + dy, w: newW, h: newH };
-    });
-  }, []);
-
-  const zoomIn = () => {
-    setViewBox(v => {
-      const newW = v.w * 0.8;
-      const newH = v.h * 0.8;
-      return { x: v.x + (v.w - newW) / 2, y: v.y + (v.h - newH) / 2, w: newW, h: newH };
-    });
-  };
-
-  const zoomOut = () => {
-    setViewBox(v => {
-      const newW = v.w * 1.25;
-      const newH = v.h * 1.25;
-      return { x: v.x + (v.w - newW) / 2, y: v.y + (v.h - newH) / 2, w: newW, h: newH };
-    });
-  };
-
-  const resetView = () => {
-    setViewBox({ x: 0, y: 0, w: BASE_W, h: BASE_H });
-  };
-
-  const handleNodeClick = (nodeId: string) => {
-    const key = nodeId.toLowerCase();
-    setSelectedNodeId(prev => prev === key ? null : key);
-  };
 
   return (
     <div style={{
@@ -394,7 +393,8 @@ export const ConceptGraph: React.FC<ConceptGraphProps> = ({ nodes, edges, flashc
             position: 'absolute',
             bottom: '0.75rem',
             left: '0.75rem',
-            backgroundColor: 'rgba(23, 26, 33, 0.92)',
+            backgroundColor: 'var(--bg-surface)',
+            boxShadow: 'var(--shadow-md)',
             border: '1px solid var(--border-color)',
             borderRadius: '6px',
             padding: '8px 12px',

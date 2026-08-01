@@ -4,7 +4,15 @@ import { saveConcepts, getConceptsByDocumentId, getConceptsByName, getAllConcept
 import { saveRelationships, getRelationshipsForConceptIds } from '../src/storage/relationshipRepository';
 import { saveFlashcards, getFlashcardsByConceptIds } from '../src/storage/flashcardRepository';
 import { saveSummary, getSummaryByDocumentId } from '../src/storage/summaryRepository';
-import { disconnectDB } from '../src/storage/db';
+import { connectDB, disconnectDB } from '../src/storage/db';
+import {
+  DocumentModel,
+  ConceptModel,
+  RelationshipModel,
+  FlashcardModel,
+  SummaryModel,
+  ConceptEmbeddingModel,
+} from '../src/storage/models';
 import { SourceDocument, Concept, Relationship, Flashcard, Summary } from '../src/shared/types';
 
 async function runRepositoryRoundtripTests() {
@@ -18,6 +26,16 @@ async function runRepositoryRoundtripTests() {
   const summaryId = uuidv4();
 
   try {
+    await connectDB();
+    await Promise.all([
+      DocumentModel.deleteMany({}),
+      ConceptModel.deleteMany({}),
+      RelationshipModel.deleteMany({}),
+      FlashcardModel.deleteMany({}),
+      SummaryModel.deleteMany({}),
+      ConceptEmbeddingModel.deleteMany({}),
+    ]);
+
     // 1. Document Repository Test
     console.log('\n--- 1. Document Repository Round-Trip ---');
     const sampleDoc: SourceDocument = {

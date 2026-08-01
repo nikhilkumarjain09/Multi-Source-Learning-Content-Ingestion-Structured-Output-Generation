@@ -5,7 +5,15 @@ import { saveRelationships } from '../src/storage/relationshipRepository';
 import { saveFlashcards } from '../src/storage/flashcardRepository';
 import { saveSummary } from '../src/storage/summaryRepository';
 import { saveConceptEmbeddings } from '../src/storage/embeddingRepository';
-import { disconnectDB } from '../src/storage/db';
+import { connectDB, disconnectDB } from '../src/storage/db';
+import {
+  DocumentModel,
+  ConceptModel,
+  RelationshipModel,
+  FlashcardModel,
+  SummaryModel,
+  ConceptEmbeddingModel,
+} from '../src/storage/models';
 import { generateEmbedding, conceptToEmbeddingText } from '../src/retrieval/embeddings';
 import { getArtifactsByTopic } from '../src/retrieval/getArtifactsByTopic';
 import { SourceDocument, Concept, Relationship, Flashcard, Summary } from '../src/shared/types';
@@ -18,6 +26,16 @@ async function runRetrievalByTopicTests() {
   const c2Id = uuidv4();
 
   try {
+    await connectDB();
+    await Promise.all([
+      DocumentModel.deleteMany({}),
+      ConceptModel.deleteMany({}),
+      RelationshipModel.deleteMany({}),
+      FlashcardModel.deleteMany({}),
+      SummaryModel.deleteMany({}),
+      ConceptEmbeddingModel.deleteMany({}),
+    ]);
+
     // Setup seed database records
     const doc: SourceDocument = {
       id: docId,
