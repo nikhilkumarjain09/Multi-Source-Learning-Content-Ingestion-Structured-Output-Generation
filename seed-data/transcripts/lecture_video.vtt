@@ -1,0 +1,13 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:05.000
+Welcome to Deep Learning and Neural Networks 101.
+
+2
+00:00:05.500 --> 00:00:10.000
+In this lecture, we will cover artificial neurons, backpropagation, and loss functions.
+
+3
+00:00:10.500 --> 00:00:16.000
+Neural networks consist of input layers, hidden layers, and output layers trained via gradient descent.

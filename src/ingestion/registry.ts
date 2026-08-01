@@ -1,10 +1,12 @@
 import { Parser } from './types';
 import { pdfParser } from './parsers/pdfParser';
 import { textTranscriptParser } from './parsers/textTranscriptParser';
+import { videoParser } from './parsers/videoParser';
 
 const parsers: Parser[] = [
   pdfParser,
   textTranscriptParser,
+  videoParser,
 ];
 
 export function getParserForFile(filePath: string): Parser {
