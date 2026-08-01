@@ -11,6 +11,7 @@ import {
   Filter,
   X,
 } from 'lucide-react';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface DocumentsViewProps {
   documents: any[];
@@ -26,6 +27,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   const [query, setQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteName, setConfirmDeleteName] = useState<string>('');
 
   const filteredDocs = documents.filter((doc) => {
     const matchesSearch = doc.filename.toLowerCase().includes(query.toLowerCase());
@@ -215,7 +218,10 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                       <Eye size={14} />
                     </button>
                     <button
-                      onClick={() => onDeleteDocument(doc.id)}
+                      onClick={() => {
+                        setConfirmDeleteId(doc.id);
+                        setConfirmDeleteName(doc.filename);
+                      }}
                       title="Delete Document"
                       style={{
                         padding: '4px 8px',
@@ -285,6 +291,24 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
           </div>
         </div>
       )}
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!confirmDeleteId}
+        title="Delete Document"
+        message={`Are you sure you want to permanently delete "${confirmDeleteName}"? This will also remove all extracted concepts, flashcards, and summaries linked to it. This action cannot be undone.`}
+        confirmLabel="Delete Permanently"
+        cancelLabel="Keep Document"
+        variant="danger"
+        onConfirm={() => {
+          if (confirmDeleteId) onDeleteDocument(confirmDeleteId);
+          setConfirmDeleteId(null);
+          setConfirmDeleteName('');
+        }}
+        onCancel={() => {
+          setConfirmDeleteId(null);
+          setConfirmDeleteName('');
+        }}
+      />
     </div>
   );
 };

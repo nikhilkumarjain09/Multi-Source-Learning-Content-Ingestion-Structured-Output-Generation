@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, Mail, ShieldCheck, Key, LogOut, X, Check, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
+import { ConfirmDialog } from '../ConfirmDialog';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   const [passMsg, setPassMsg] = useState<string | null>(null);
   const [passError, setPassError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [confirmLogoutAll, setConfirmLogoutAll] = useState(false);
 
   if (!isOpen || !user) return null;
 
@@ -155,13 +158,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 
         {/* Session Management */}
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-          <button className="btn-secondary" onClick={logoutAllSessions} style={{ color: 'var(--error)', fontSize: '12px' }}>
+          <button className="btn-secondary" onClick={() => setConfirmLogoutAll(true)} style={{ color: 'var(--error)', fontSize: '12px' }}>
             <LogOut size={14} /> Logout All Sessions
           </button>
-          <button className="btn-primary" onClick={logout} style={{ fontSize: '12px' }}>
+          <button className="btn-primary" onClick={() => setConfirmLogout(true)} style={{ fontSize: '12px' }}>
             <LogOut size={14} /> Log Out
           </button>
         </div>
+
+        {/* Confirm: Log Out */}
+        <ConfirmDialog
+          isOpen={confirmLogout}
+          title="Log Out"
+          message="Are you sure you want to log out of your current session?"
+          confirmLabel="Log Out"
+          cancelLabel="Stay Logged In"
+          variant="warning"
+          onConfirm={() => { setConfirmLogout(false); logout(); onClose(); }}
+          onCancel={() => setConfirmLogout(false)}
+        />
+
+        {/* Confirm: Logout All Sessions */}
+        <ConfirmDialog
+          isOpen={confirmLogoutAll}
+          title="Logout All Sessions"
+          message="This will immediately revoke all active sessions across every device. You will need to log in again everywhere. Are you sure?"
+          confirmLabel="Logout All Devices"
+          cancelLabel="Cancel"
+          variant="danger"
+          onConfirm={() => { setConfirmLogoutAll(false); logoutAllSessions(); onClose(); }}
+          onCancel={() => setConfirmLogoutAll(false)}
+        />
       </div>
     </div>
   );
