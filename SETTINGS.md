@@ -15,7 +15,10 @@
 - **Web frontend:** React + TypeScript, minimal component set
 - **Storage:** SQLite (via better-sqlite3 or Prisma) — single file DB, zero
   external service dependency
-- **LLM:** Anthropic API (Claude), structured/schema-constrained prompting
+- **LLM provider:** config-driven — default is Groq API, switchable to NVIDIA
+  (NIM) purely via a config value, no code changes required. See section 7
+  below for the provider abstraction contract. Structured/schema-constrained
+  prompting is used regardless of provider.
 - **PDF parsing:** pdf-parse (or equivalent)
 - **Validation:** zod (schema validation for both LLM output and API payloads)
 - **Graph rendering (web UI):** lightweight custom SVG or minimal D3 —
@@ -86,9 +89,19 @@ invasive. Concretely:
 
 - All secrets (API keys) via `.env`, never hardcoded, never committed.
   `.env.example` must be committed with placeholder values.
-- Single `config.ts` (or equivalent) centralizing: DB path, LLM model name,
-  token/chunk size limits, retry counts — no magic numbers scattered across
-  files.
+- Single `config.ts` (or equivalent) centralizing: DB path, LLM provider
+  name, LLM model name, token/chunk size limits, retry counts — no magic
+  numbers scattered across files.
+- `.env` variables for the AI layer:
+  - `LLM_PROVIDER` — `"groq"` (default) or `"nvidia"`
+  - `GROQ_API_KEY`
+  - `GROQ_MODEL` — e.g. a current Groq-hosted Llama/Mixtral model, confirm
+    latest available model name at implementation time rather than
+    assuming one from memory
+  - `NVIDIA_API_KEY`
+  - `NVIDIA_MODEL` — e.g. a current NVIDIA NIM-hosted model, same caveat
+  - Switching providers is: change `LLM_PROVIDER` in `.env`, restart. No
+    code edit required.
 
 ---
 
@@ -102,3 +115,35 @@ At the start of every implementation phase, re-read (in this order):
 
 This re-read step exists specifically to prevent AI drift across a long,
 multi-phase build — do not skip it even if the phase "seems simple."
+
+---
+
+## 7. LLM Provider Abstraction (contract — see ARCHITECTURE.md for placement)
+
+All extraction-layer code must call a single provider-agnostic interface,
+never a specific vendor SDK directly:
+
+```ts
+interface LLMProvider {
+  complete(params: {
+    systemPrompt?: string;
+    userPrompt: string;
+    maxTokens: number;
+  }): Promise<{ text: string }>;
+}
+```
+
+- `src/extraction/providers/groqProvider.ts` implements `LLMProvider` using
+  the Groq API (OpenAI-compatible chat completions endpoint).
+- `src/extraction/providers/nvidiaProvider.ts` implements `LLMProvider`
+  using NVIDIA's API (NIM microservices are also OpenAI-compatible chat
+  completions, so the two implementations should look structurally
+  similar — mainly base URL, auth header, and model name differ).
+- `src/extraction/providers/index.ts` reads `config.llmProvider` and
+  returns the matching implementation — this is the ONLY place that
+  branches on provider name. Everything upstream (extract.ts,
+  validateExtraction.ts, etc.) only ever depends on `LLMProvider`, never
+  on `config.llmProvider` directly.
+- Adding a third provider later = one new file implementing `LLMProvider`
+  + one line in the provider registry — no changes anywhere else. This
+  follows the same plugin pattern already used for ingestion parsers.

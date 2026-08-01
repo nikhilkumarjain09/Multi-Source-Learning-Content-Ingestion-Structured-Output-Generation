@@ -1,12 +1,17 @@
 import { getParserForFile } from './ingestion/registry';
 import { normalizeDocument } from './normalization/normalize';
-import { SourceDocument } from './shared/types';
+import { extractConceptsFromDocument } from './extraction/extract';
+import { SourceDocument, ExtractionResult } from './shared/types';
+
+export interface IngestionPipelineResult {
+  document: SourceDocument;
+  extraction: ExtractionResult;
+}
 
 /**
- * Runs the initial ingestion pipeline: parser selection -> parsing -> normalization.
- * Stops after returning the canonical SourceDocument shape.
+ * Runs the ingestion pipeline: parser selection -> parsing -> normalization -> concept extraction.
  */
-export async function runIngestionPipeline(filePath: string): Promise<SourceDocument> {
+export async function runIngestionPipeline(filePath: string): Promise<IngestionPipelineResult> {
   if (!filePath) {
     throw new Error('File path must be provided to runIngestionPipeline');
   }
@@ -14,6 +19,10 @@ export async function runIngestionPipeline(filePath: string): Promise<SourceDocu
   const parser = getParserForFile(filePath);
   const parsed = await parser.parse(filePath);
   const normalizedDoc = normalizeDocument(filePath, parsed);
+  const extractionResult = await extractConceptsFromDocument(normalizedDoc);
 
-  return normalizedDoc;
+  return {
+    document: normalizedDoc,
+    extraction: extractionResult,
+  };
 }

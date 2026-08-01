@@ -76,9 +76,16 @@ interface SourceDocument {
 
 ### 2.3 Extraction Layer (`src/extraction/`)
 - Takes a `SourceDocument`, chunks text if needed (token-threshold based),
-  and calls the LLM with a strict schema-constrained prompt.
+  and calls the LLM (via the provider abstraction below) with a strict
+  schema-constrained prompt.
 - Prompt templates live in `src/extraction/prompts/` as separate files,
   not inline strings in logic files — makes prompt iteration low-risk.
+- **LLM provider abstraction** (`src/extraction/providers/`): `extract.ts`
+  depends only on the `LLMProvider` interface defined in SETTINGS.md
+  section 7 — it never imports a vendor SDK directly. `providers/index.ts`
+  selects between `groqProvider.ts` (default) and `nvidiaProvider.ts` based
+  on `config.llmProvider`. Switching providers is a `.env` change
+  (`LLM_PROVIDER=groq` or `LLM_PROVIDER=nvidia`), not a code change.
 - Output target schema (validated via zod in the next layer):
 
 ```ts
@@ -138,6 +145,10 @@ project-root/
 │   ├── extraction/
 │   │   ├── prompts/
 │   │   │   └── extractConcepts.prompt.ts
+│   │   ├── providers/
+│   │   │   ├── groqProvider.ts
+│   │   │   ├── nvidiaProvider.ts
+│   │   │   └── index.ts
 │   │   ├── extract.ts
 │   │   ├── chunk.ts
 │   │   └── mergeChunks.ts
