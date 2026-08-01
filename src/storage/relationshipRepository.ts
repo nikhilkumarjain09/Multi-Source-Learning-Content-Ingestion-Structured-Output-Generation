@@ -2,6 +2,7 @@ import { Relationship } from '../shared/types';
 import { getDatabase } from './db';
 
 export function saveRelationships(relationships: Relationship[]): void {
+  if (relationships.length === 0) return;
   const db = getDatabase();
   const stmt = db.prepare(`
     INSERT INTO relationships (id, from_concept_id, to_concept_id, type)

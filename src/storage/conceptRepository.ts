@@ -2,6 +2,7 @@ import { Concept } from '../shared/types';
 import { getDatabase } from './db';
 
 export function saveConcepts(concepts: Concept[]): void {
+  if (concepts.length === 0) return;
   const db = getDatabase();
   const stmt = db.prepare(`
     INSERT INTO concepts (id, document_id, name, description)
@@ -13,6 +14,19 @@ export function saveConcepts(concepts: Concept[]): void {
     }
   });
   insertMany(concepts);
+}
+
+export function getConceptsByDocumentId(documentId: string): Concept[] {
+  const db = getDatabase();
+  const stmt = db.prepare('SELECT * FROM concepts WHERE document_id = ?');
+  const rows = stmt.all(documentId) as any[];
+
+  return rows.map(row => ({
+    id: row.id,
+    documentId: row.document_id,
+    name: row.name,
+    description: row.description,
+  }));
 }
 
 export function getConceptsByName(name: string): Concept[] {

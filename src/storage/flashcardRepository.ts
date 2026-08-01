@@ -2,6 +2,7 @@ import { Flashcard } from '../shared/types';
 import { getDatabase } from './db';
 
 export function saveFlashcards(flashcards: Flashcard[]): void {
+  if (flashcards.length === 0) return;
   const db = getDatabase();
   const stmt = db.prepare(`
     INSERT INTO flashcards (id, concept_id, question, answer)
