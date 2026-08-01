@@ -3,6 +3,7 @@ import { UploadControl } from './components/UploadControl';
 import { SummaryPanel } from './components/SummaryPanel';
 import { FlashcardList } from './components/FlashcardList';
 import { ConceptGraph } from './components/ConceptGraph';
+import { LearningPathPanel, LearningPathData } from './components/LearningPathPanel';
 import { TopicBrowser } from './components/TopicBrowser';
 import { BookOpen } from 'lucide-react';
 
@@ -12,11 +13,13 @@ export const App: React.FC = () => {
   const [flashcards, setFlashcards] = useState<any[]>([]);
   const [graphNodes, setGraphNodes] = useState<any[]>([]);
   const [graphEdges, setGraphEdges] = useState<any[]>([]);
+  const [learningPath, setLearningPath] = useState<LearningPathData | null>(null);
 
   const handleIngestSuccess = (data: any) => {
     setActiveTopic(null);
     setSummary(data.summary || '');
     setFlashcards(data.flashcards || []);
+    setLearningPath(data.learningPath || null);
     if (data.graph) {
       setGraphNodes(data.graph.nodes || []);
       setGraphEdges(data.graph.edges || []);
@@ -31,6 +34,7 @@ export const App: React.FC = () => {
       if (response.ok) {
         setSummary(data.summary || '');
         setFlashcards(data.flashcards || []);
+        setLearningPath(data.learningPath || null);
         if (data.graph) {
           setGraphNodes(data.graph.nodes || []);
           setGraphEdges(data.graph.edges || []);
@@ -62,12 +66,14 @@ export const App: React.FC = () => {
 
       <main>
         <UploadControl onIngestSuccess={handleIngestSuccess} />
-        
+
         <TopicBrowser onSelectTopic={handleSelectTopic} selectedTopic={activeTopic} />
 
         <SummaryPanel summary={summary} />
 
         <ConceptGraph nodes={graphNodes} edges={graphEdges} flashcards={flashcards} />
+
+        <LearningPathPanel learningPath={learningPath} />
 
         <FlashcardList flashcards={flashcards} topicName={activeTopic || 'Ingested'} />
       </main>

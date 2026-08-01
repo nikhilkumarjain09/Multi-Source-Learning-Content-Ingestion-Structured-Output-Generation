@@ -8,7 +8,7 @@
     "cli": "node node_modules/tsx/dist/cli.mjs src/cli/index.ts",
     "server": "node node_modules/tsx/dist/cli.mjs web/server/routes.ts",
     "db:init": "node node_modules/tsx/dist/cli.mjs src/storage/db.ts",
-    "test": "node node_modules/tsx/dist/cli.mjs tests/parserSmoke.test.ts && node node_modules/tsx/dist/cli.mjs tests/videoParser.test.ts && node node_modules/tsx/dist/cli.mjs tests/schemaValidation.test.ts && node node_modules/tsx/dist/cli.mjs tests/edgeCases.test.ts && node node_modules/tsx/dist/cli.mjs tests/crossDocumentDedupe.test.ts && node node_modules/tsx/dist/cli.mjs tests/repositoryRoundtrip.test.ts && node node_modules/tsx/dist/cli.mjs tests/retrievalByTopic.test.ts && node node_modules/tsx/dist/cli.mjs tests/webApi.test.ts && node node_modules/tsx/dist/cli.mjs tests/cliSmoke.test.ts"
+    "test": "node node_modules/tsx/dist/cli.mjs tests/parserSmoke.test.ts && node node_modules/tsx/dist/cli.mjs tests/videoParser.test.ts && node node_modules/tsx/dist/cli.mjs tests/schemaValidation.test.ts && node node_modules/tsx/dist/cli.mjs tests/edgeCases.test.ts && node node_modules/tsx/dist/cli.mjs tests/crossDocumentDedupe.test.ts && node node_modules/tsx/dist/cli.mjs tests/learningPath.test.ts && node node_modules/tsx/dist/cli.mjs tests/repositoryRoundtrip.test.ts && node node_modules/tsx/dist/cli.mjs tests/retrievalByTopic.test.ts && node node_modules/tsx/dist/cli.mjs tests/webApi.test.ts && node node_modules/tsx/dist/cli.mjs tests/cliSmoke.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",

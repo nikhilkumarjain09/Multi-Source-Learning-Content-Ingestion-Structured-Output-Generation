@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { registerIngestCommand } from './commands/ingest';
 import { registerListTopicsCommand } from './commands/listTopics';
 import { registerExportCommand } from './commands/export';
+import { registerLearningPathCommand } from './commands/learningPath';
 
 const program = new Command();
 
@@ -13,5 +14,6 @@ program
 registerIngestCommand(program);
 registerListTopicsCommand(program);
 registerExportCommand(program);
+registerLearningPathCommand(program);
 
 program.parse(process.argv);

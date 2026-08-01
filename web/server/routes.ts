@@ -7,6 +7,7 @@ import { CONFIG } from '../../src/shared/config';
 import { runIngestionPipeline } from '../../src/pipeline';
 import { getAllConceptNames } from '../../src/storage/conceptRepository';
 import { getArtifactsByTopic } from '../../src/retrieval/getArtifactsByTopic';
+import { generateLearningPathFromGraph } from '../../src/outputs/learningPath';
 
 const uploadDir = path.resolve(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -51,6 +52,11 @@ app.post('/api/ingest', upload.single('file'), async (req, res) => {
       await fs.promises.unlink(targetFilePath);
     } catch {}
 
+    const learningPath = generateLearningPathFromGraph(
+      result.extraction.concepts,
+      result.extraction.relationships
+    );
+
     res.status(200).json({
       documentId: result.document.id,
       concepts: result.extraction.concepts,
@@ -58,6 +64,7 @@ app.post('/api/ingest', upload.single('file'), async (req, res) => {
       summary: result.summary,
       flashcards: result.flashcards,
       graph: result.graph,
+      learningPath,
     });
   } catch (error: any) {
     // Clean up temp file on error
@@ -87,7 +94,7 @@ app.get('/api/topics', (req, res) => {
 
 /**
  * GET /api/topics/:topic
- * Retrieves flashcards, summary, and scoped graph data for a specific topic.
+ * Retrieves flashcards, summary, scoped graph data, and ordered learning path for a specific topic.
  */
 app.get('/api/topics/:topic', (req, res) => {
   try {
@@ -99,12 +106,17 @@ app.get('/api/topics/:topic', (req, res) => {
       return;
     }
 
+    const concepts = artifacts.concepts.map(c => ({ name: c.name, description: c.description }));
+    const relationships = artifacts.graph.edges.map(e => ({ from: e.from, to: e.to, type: e.type }));
+    const learningPath = generateLearningPathFromGraph(concepts, relationships, topicName);
+
     res.status(200).json({
       topic: artifacts.topic,
       concepts: artifacts.concepts,
       flashcards: artifacts.flashcards,
       summary: artifacts.summary,
       graph: artifacts.graph,
+      learningPath,
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Failed to retrieve topic artifacts.' });
