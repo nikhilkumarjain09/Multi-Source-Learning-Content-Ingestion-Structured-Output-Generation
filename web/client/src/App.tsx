@@ -67,7 +67,7 @@ export const App: React.FC = () => {
 
         <SummaryPanel summary={summary} />
 
-        <ConceptGraph nodes={graphNodes} edges={graphEdges} />
+        <ConceptGraph nodes={graphNodes} edges={graphEdges} flashcards={flashcards} />
 
         <FlashcardList flashcards={flashcards} topicName={activeTopic || 'Ingested'} />
       </main>
