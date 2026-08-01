@@ -14,6 +14,8 @@ import {
 import { saveRelationships, Relationship } from './storage/relationshipRepository';
 import { saveFlashcards } from './storage/flashcardRepository';
 import { saveSummary } from './storage/summaryRepository';
+import { saveConceptEmbeddings } from './storage/embeddingRepository';
+import { generateEmbedding, conceptToEmbeddingText } from './retrieval/embeddings';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface IngestionPipelineResult {
@@ -131,6 +133,20 @@ export async function runIngestionPipeline(filePath: string): Promise<IngestionP
       documentId: normalizedDoc.id,
       summaryText: extractionResult.summary,
     });
+  }
+
+  // 6. Generate and store concept embeddings for semantic search
+  const embeddingEntries = extractionResult.concepts.map(c => {
+    const canonicalName = c.name.trim().toLowerCase();
+    const conceptId = conceptMap.get(canonicalName);
+    if (!conceptId) return null;
+    const text = conceptToEmbeddingText(c.name, c.description);
+    const embedding = generateEmbedding(text);
+    return { conceptId, embedding };
+  }).filter((e): e is { conceptId: string; embedding: number[] } => e !== null);
+
+  if (embeddingEntries.length > 0) {
+    saveConceptEmbeddings(embeddingEntries);
   }
 
   return {

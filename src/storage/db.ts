@@ -77,6 +77,15 @@ export function initializeSchema(db: Database.Database): void {
     );
   `);
 
+  // Concept embeddings for semantic search (per DATABASE.md section 4)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS concept_embeddings (
+      concept_id TEXT PRIMARY KEY,
+      embedding TEXT NOT NULL,
+      FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE CASCADE
+    );
+  `);
+
   // Indexes
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_concepts_name ON concepts(name);

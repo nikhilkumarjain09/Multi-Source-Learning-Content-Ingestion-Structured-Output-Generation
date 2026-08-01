@@ -4,6 +4,8 @@ import { saveConcepts } from '../src/storage/conceptRepository';
 import { saveRelationships } from '../src/storage/relationshipRepository';
 import { saveFlashcards } from '../src/storage/flashcardRepository';
 import { saveSummary } from '../src/storage/summaryRepository';
+import { saveConceptEmbeddings } from '../src/storage/embeddingRepository';
+import { generateEmbedding, conceptToEmbeddingText } from '../src/retrieval/embeddings';
 import { getArtifactsByTopic } from '../src/retrieval/getArtifactsByTopic';
 import { SourceDocument, Concept, Relationship, Flashcard, Summary } from '../src/shared/types';
 
@@ -38,6 +40,12 @@ function runRetrievalByTopicTests() {
     description: 'Computing systems inspired by biological neural networks.',
   };
   saveConcepts([c1, c2]);
+
+  // Save embeddings for semantic fallback test
+  saveConceptEmbeddings([
+    { conceptId: c1Id, embedding: generateEmbedding(conceptToEmbeddingText(c1.name, c1.description)) },
+    { conceptId: c2Id, embedding: generateEmbedding(conceptToEmbeddingText(c2.name, c2.description)) },
+  ]);
 
   const rel: Relationship = {
     id: uuidv4(),
@@ -93,13 +101,25 @@ function runRetrievalByTopicTests() {
   }
   console.log('Test 2 Passed: Substring fallback match retrieved expected artifacts.');
 
-  // Test 3: Non-Existent Topic
-  console.log('\n--- Test 3: Non-Existent Topic Returns Null ---');
-  const nonExistent = getArtifactsByTopic('Quantum Computing 123');
-  if (nonExistent !== null) {
-    throw new Error('Test 3 Failed: Expected null for non-existent topic');
+  // Test 3: Semantic Fallback Match (when exact/substring string match returns nothing)
+  console.log('\n--- Test 3: Semantic Fallback Match ---');
+  // "biological neural" does not substring match "Neural Networks" or "Artificial Intelligence" directly
+  const semanticResult = getArtifactsByTopic('biological neural');
+  if (!semanticResult) {
+    throw new Error('Test 3 Failed: Expected non-null result for semantic fallback match');
   }
-  console.log('Test 3 Passed: Non-existent topic returned null.');
+  if (!semanticResult.concepts.some(c => c.name === 'Neural Networks')) {
+    throw new Error('Test 3 Failed: Semantic search failed to match Neural Networks');
+  }
+  console.log('Test 3 Passed: Semantic embedding fallback retrieved expected artifacts.');
+
+  // Test 4: Completely Unrelated Query Returns Null
+  console.log('\n--- Test 4: Completely Unrelated Query Returns Null ---');
+  const nonExistent = getArtifactsByTopic('xyz999unrelatedQuery');
+  if (nonExistent !== null) {
+    throw new Error('Test 4 Failed: Expected null for completely unrelated query');
+  }
+  console.log('Test 4 Passed: Completely unrelated query returned null.');
 
   console.log('\nAll Retrieval Layer Tests PASSED Successfully!');
 }
