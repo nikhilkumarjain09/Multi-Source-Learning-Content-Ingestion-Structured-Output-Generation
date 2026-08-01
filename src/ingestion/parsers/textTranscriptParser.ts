@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { Parser, ParsedDocument } from '../types';
 
@@ -8,10 +9,22 @@ export const textTranscriptParser: Parser = {
   },
 
   async parse(filePath: string): Promise<ParsedDocument> {
-    // Placeholder implementation - pipeline logic to be added in implementation phase
-    return {
-      rawText: '',
-      metadata: { filePath },
-    };
+    const resolvedPath = path.resolve(filePath);
+    if (!fs.existsSync(resolvedPath)) {
+      throw new Error(`File not found: "${filePath}"`);
+    }
+
+    try {
+      const rawText = await fs.promises.readFile(resolvedPath, 'utf-8');
+      return {
+        rawText,
+        metadata: {
+          filePath: resolvedPath,
+          fileSize: (await fs.promises.stat(resolvedPath)).size,
+        },
+      };
+    } catch (err: any) {
+      throw new Error(`Failed to read transcript file "${filePath}": ${err.message}`);
+    }
   },
 };
