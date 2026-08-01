@@ -36,6 +36,15 @@ export const AuthInput: React.FC<AuthInputProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
 
+  // Auto-hide password after 20 seconds for enhanced security
+  React.useEffect(() => {
+    if (!showPassword) return;
+    const timer = setTimeout(() => {
+      setShowPassword(false);
+    }, 20000);
+    return () => clearTimeout(timer);
+  }, [showPassword]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (showCapsLockWarning && type === 'password') {
       const caps = e.getModifierState('CapsLock');
