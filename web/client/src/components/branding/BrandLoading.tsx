@@ -19,6 +19,14 @@ export const BrandLoading: React.FC<BrandLoadingProps> = ({
       backgroundColor: 'var(--bg-base)',
       padding: '2rem',
     }}>
+      <style>{`
+        @keyframes progressSlide {
+          0% { left: -40%; width: 40%; }
+          50% { left: 30%; width: 60%; }
+          100% { left: 100%; width: 40%; }
+        }
+      `}</style>
+
       <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -39,22 +47,21 @@ export const BrandLoading: React.FC<BrandLoadingProps> = ({
           </p>
         </div>
 
-        {/* Animated Loader Bar */}
+        {/* Animated Horizontal Progress Bar Fill */}
         <div style={{
-          width: '180px',
+          width: '200px',
           height: '4px',
           backgroundColor: 'var(--border-color)',
-          borderRadius: '2px',
+          borderRadius: '4px',
           overflow: 'hidden',
           position: 'relative',
         }}>
           <div style={{
-            width: '60px',
             height: '100%',
             backgroundColor: 'var(--accent)',
-            borderRadius: '2px',
+            borderRadius: '4px',
             position: 'absolute',
-            animation: 'spin 1.4s ease-in-out infinite',
+            animation: 'progressSlide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite',
           }} />
         </div>
       </div>
