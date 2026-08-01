@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BRANDING } from './config/branding';
 import { BrandLoading } from './components/branding/BrandLoading';
 import { AuthProvider, useAuth } from './auth/AuthContext';
+import { AuthLayout } from './components/auth/AuthLayout';
 import { LoginView } from './components/auth/LoginView';
 import { SignupView } from './components/auth/SignupView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
@@ -178,23 +179,25 @@ const WorkspaceApp: React.FC = () => {
     return <BrandLoading message="Authenticating your SynthLearn learning workspace..." />;
   }
 
-  // Render Authentication Flow for Unauthenticated Guests
+  // Render Authentication Flow for Unauthenticated Guests inside Enterprise AuthLayout
   if (!isAuthenticated) {
+    let authContent: React.ReactNode = null;
     if (authPage === 'signup') {
-      return <SignupView onNavigateToLogin={() => setAuthPage('login')} />;
+      authContent = <SignupView onNavigateToLogin={() => setAuthPage('login')} />;
+    } else if (authPage === 'forgot-password') {
+      authContent = <ForgotPasswordView onNavigateToLogin={() => setAuthPage('login')} />;
+    } else if (authPage === 'reset-password') {
+      authContent = <ResetPasswordView token={resetToken} onNavigateToLogin={() => setAuthPage('login')} />;
+    } else {
+      authContent = (
+        <LoginView
+          onNavigateToSignup={() => setAuthPage('signup')}
+          onNavigateToForgotPassword={() => setAuthPage('forgot-password')}
+        />
+      );
     }
-    if (authPage === 'forgot-password') {
-      return <ForgotPasswordView onNavigateToLogin={() => setAuthPage('login')} />;
-    }
-    if (authPage === 'reset-password') {
-      return <ResetPasswordView token={resetToken} onNavigateToLogin={() => setAuthPage('login')} />;
-    }
-    return (
-      <LoginView
-        onNavigateToSignup={() => setAuthPage('signup')}
-        onNavigateToForgotPassword={() => setAuthPage('forgot-password')}
-      />
-    );
+
+    return <AuthLayout>{authContent}</AuthLayout>;
   }
 
   // Render Authenticated SaaS Application Workspace

@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { Lock, KeyRound, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AuthCard } from './AuthCard';
+import { AuthInput } from './AuthInput';
+import { PasswordStrength } from './PasswordStrength';
+import { AuthFooter } from './AuthFooter';
 import { BrandHeader } from '../branding/BrandHeader';
 import { BRANDING } from '../../config/branding';
 
@@ -12,22 +16,55 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ token: ini
   const [tokenInput, setTokenInput] = useState(initialToken || '');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [passError, setPassError] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  const [globalError, setGlobalError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const validateToken = (val: string) => {
+    if (!val.trim()) {
+      setTokenError('6-digit reset OTP code is required.');
+      return false;
+    }
+    setTokenError(null);
+    return true;
+  };
+
+  const validatePass = (val: string) => {
+    if (val.length < 8) {
+      setPassError('Password must be at least 8 characters long.');
+      return false;
+    }
+    if (!/[A-Z]/.test(val) || !/[a-z]/.test(val) || !/[0-9]/.test(val)) {
+      setPassError('Password must include uppercase, lowercase, and numeric characters.');
+      return false;
+    }
+    setPassError(null);
+    return true;
+  };
+
+  const validateConfirm = (val: string) => {
+    if (val !== newPassword) {
+      setConfirmError('Passwords do not match.');
+      return false;
+    }
+    setConfirmError(null);
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setGlobalError(null);
 
-    if (!tokenInput.trim()) {
-      setError('Please enter the 6-digit OTP reset code from your email.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
+    const isTokenValid = validateToken(tokenInput);
+    const isPassValid = validatePass(newPassword);
+    const isConfirmValid = validateConfirm(confirmPassword);
+
+    if (!isTokenValid || !isPassValid || !isConfirmValid) return;
 
     setLoading(true);
     try {
@@ -42,37 +79,23 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ token: ini
       if (res.ok) {
         setSuccess(true);
       } else {
-        setError(data.error || 'Failed to reset password. Please check your 6-digit OTP code.');
+        setGlobalError(data.error || 'Failed to reset password. Please check your 6-digit OTP code.');
       }
     } catch {
       setLoading(false);
-      setError('Network error. Please try again.');
+      setGlobalError('Network error. Please try again.');
     }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: 'var(--bg-base)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem 1rem',
-    }}>
-      <div style={{
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--border-radius-lg)',
-        width: '100%',
-        maxWidth: '420px',
-        padding: '2.5rem',
-        boxShadow: 'var(--shadow-lg)',
-      }}>
-        {/* Brand Header */}
-        <BrandHeader title={`Set New ${BRANDING.APP_NAME} Password`} subtitle="Enter your 6-digit OTP code and choose a new password" />
+    <AuthCard>
+      {/* Brand Header */}
+      <BrandHeader title={`Set New ${BRANDING.APP_NAME} Password`} subtitle="Enter your 6-digit OTP code and choose a new password" />
 
-        {error && (
-          <div style={{
+      {globalError && (
+        <div
+          role="alert"
+          style={{
             backgroundColor: 'var(--error-glow)',
             border: '1px solid var(--error)',
             borderRadius: 'var(--border-radius-sm)',
@@ -83,95 +106,101 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ token: ini
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
+          }}
+        >
+          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <span>{globalError}</span>
+        </div>
+      )}
+
+      {success ? (
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            backgroundColor: 'var(--success-glow)',
+            border: '1px solid var(--success)',
+            borderRadius: 'var(--border-radius-sm)',
+            padding: '1rem',
+            fontSize: '13px',
+            color: '#16A34A',
+            marginBottom: '1.5rem',
           }}>
-            <AlertCircle size={16} />
-            <span>{error}</span>
+            <CheckCircle2 size={24} style={{ marginBottom: '0.5rem' }} />
+            <div>Password updated successfully! You can now log in with your new password.</div>
           </div>
-        )}
+          <button className="btn-primary" onClick={onNavigateToLogin} style={{ width: '100%', justifyContent: 'center' }}>
+            Proceed to Login
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+          <AuthInput
+            id="reset-otp"
+            label="6-Digit Reset OTP Code"
+            type="text"
+            value={tokenInput}
+            onChange={(val) => {
+              setTokenInput(val);
+              if (tokenError) validateToken(val);
+            }}
+            onBlur={() => validateToken(tokenInput)}
+            placeholder="e.g. 684920"
+            icon={<KeyRound size={16} />}
+            error={tokenError}
+            isValid={!!tokenInput.trim() && !tokenError}
+          />
 
-        {success ? (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              backgroundColor: 'var(--success-glow)',
-              border: '1px solid var(--success)',
-              borderRadius: 'var(--border-radius-sm)',
-              padding: '1rem',
-              fontSize: '13px',
-              color: '#16A34A',
-              marginBottom: '1.5rem',
-            }}>
-              <CheckCircle2 size={24} style={{ marginBottom: '0.5rem' }} />
-              <div>Password updated successfully! You can now log in with your new password.</div>
-            </div>
-            <button className="btn-primary" onClick={onNavigateToLogin} style={{ width: '100%', justifyContent: 'center' }}>
-              Proceed to Login
-            </button>
+          <div>
+            <AuthInput
+              id="reset-new-password"
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={(val) => {
+                setNewPassword(val);
+                validatePass(val);
+                if (confirmPassword) validateConfirm(confirmPassword);
+              }}
+              onBlur={() => validatePass(newPassword)}
+              placeholder="••••••••"
+              icon={<Lock size={16} />}
+              error={passError}
+              autoComplete="new-password"
+              showCapsLockWarning
+            />
+
+            <PasswordStrength password={newPassword} />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-                6-Digit Reset OTP Code
-              </label>
-              <div style={{ position: 'relative' }}>
-                <KeyRound size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input
-                  type="text"
-                  placeholder="e.g. 684920"
-                  value={tokenInput}
-                  onChange={(e) => setTokenInput(e.target.value)}
-                  style={{ width: '100%', paddingLeft: '36px', letterSpacing: '2px', fontWeight: 600 }}
-                  required
-                />
-              </div>
-            </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-                New Password
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  style={{ width: '100%', paddingLeft: '36px' }}
-                  required
-                />
-              </div>
-            </div>
+          <AuthInput
+            id="reset-confirm-password"
+            label="Confirm New Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(val) => {
+              setConfirmPassword(val);
+              if (confirmError) validateConfirm(confirmPassword);
+            }}
+            onBlur={() => validateConfirm(confirmPassword)}
+            placeholder="••••••••"
+            icon={<Lock size={16} />}
+            error={confirmError}
+            isValid={!!confirmPassword && confirmPassword === newPassword && !confirmError}
+            autoComplete="new-password"
+          />
 
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-                Confirm New Password
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  style={{ width: '100%', paddingLeft: '36px' }}
-                  required
-                />
-              </div>
-            </div>
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={loading}
+            style={{ width: '100%', justifyContent: 'center', padding: '0.7rem', fontSize: '13px', fontWeight: 600, marginTop: '0.25rem' }}
+          >
+            {loading ? <RefreshCw size={18} className="spinner" /> : <span>Update Password</span>}
+            {!loading && <ArrowRight size={16} />}
+          </button>
+        </form>
+      )}
 
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={loading}
-              style={{ width: '100%', justifyContent: 'center', padding: '0.65rem' }}
-            >
-              {loading ? <RefreshCw size={18} className="spinner" /> : <span>Update Password</span>}
-              {!loading && <ArrowRight size={16} />}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+      <AuthFooter />
+    </AuthCard>
   );
 };
